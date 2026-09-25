@@ -1,15 +1,9 @@
-# Architectural Decision Records (ADR)
+# Registros de Decisões de Arquitetura (ADR)
 
-## O que é um ADR?
+Decisões técnicas do projeto Foco no Incêndio DF (UnB-QueimadaFlora), na disciplina Sistemas de Bancos de Dados 2 (FCTE / UnB, 2026.2).
 
-Um Architectural Decision Record (ADR) captura uma decisão técnica ou arquitetural importante, acompanhada de seu contexto, requisitos, alternativas avaliadas, consequências positivas e negativas, e critérios objetivos para revisão futura.
+## Decisões registradas
 
-## Índice de Decisões
-
-| ID | Título | Status | Data |
-|---|---|---|---|
-| [0001](0001-adotar-postgresql-com-postgis-camada-gold.md) | Adotar PostgreSQL com extensão PostGIS como banco de dados principal (Camada Gold) | Aceito | 2026-09-09 |
-
----
-
-> Para registrar novas decisões, siga a mesma estrutura e numeração incremental (`0002-...`, `0003-...`).
+| ID | Decisão | Status | Data |
+| :--- | :--- | :---: | :--- |
+| [0001](0001-adotar-postgresql-com-postgis-camada-gold.md) | Adotar PostgreSQL com PostGIS como banco principal | Aceito | 2026-09-09 |
