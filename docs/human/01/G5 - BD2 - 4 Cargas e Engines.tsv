@@ -1,0 +1,17 @@
+Bloco 4 — Cargas de trabalho, engines e garantias												
+Uma linha por armazenamento do projeto (banco principal, cache, réplica analítica, arquivo…).												
+												
+Linha 6 = exemplo fictício (não apague). Preencha a partir da linha 7.												
+Nº	Armazenamento	O que guarda	Tipo de carga (OLTP | OLAP | misto)	SGBD ou serviço escolhido	Orientação (linha | coluna)	Latência aceitável	Disponibilidade exigida	Garantias ACID necessárias (A, C, I, D — quais)	De qual garantia dá para abrir mão	Quem cobre esse buraco se abrir mão	Volume estimado em 1 ano	Justificativa da escolha
+1	Banco principal	Usuários, bicicletas, empréstimos em andamento	OLTP	PostgreSQL	linha	< 300 ms na retirada	alta — sem ele ninguém pega bicicleta	A, I e D são obrigatórias	Nenhuma, no momento	—	~1,5 GB	Domínio com integridade forte, volume moderado e equipe que já domina SQL
+1	Camada Bronze (Data Lake)	Lotes brutos do BDQueimadas (CSVs), Shapefiles do IBRAM, GPKG do CAR e DarwinCore do SiBBr	OLAP	Armazenamento de Arquivos / Bucket	Não se aplica	Minutos / Horas	Média	Nenhuma	A, C, I e D completas	Pipeline de ingestão idempotente	~5 a 10 GB	Guarda o dado cru exatamente como veio da fonte para auditoria, reprodutibilidade e reprocessamento histórico.
+2	Banco Espacial Principal (Camada Gold / Servidela)	Focos limpos, polígonos de UCs, Reservas Legais do CAR e ocorrências de espécies	Misto	PostgreSQL + PostGIS	Linha, com índices GiST	< 500 ms por consulta espacial na API/painel	Alta	Consistência e Durabilidade são cruciais; Atomicidade e Isolamento no nível de transação de carga	Isolamento estrito	O pipeline roda em batch em horários de baixa demanda	~3 a 5 GB	Suporte padrão da indústria para operações topológicas (ST_Intersects), indexação espacial GiST de alta performance e integridade referencial.
+3	Camada Analítica / Agregações Históricas	Séries temporais de focos agregadas por dia, bioma, RA e propriedade rural para dashboards	OLAP	DuckDB / GeoParquet	Coluna	< 100 ms para filtros analíticos agregados	Média a Alta	Nenhuma	ACID completo dispensável na leitura	Tabelas pré-agregadas atualizadas via scripts agendados	~1 GB	Otimizado para agregações analíticas (GROUP BY, médias históricas de seca), evitando onerar o banco espacial principal durante análises pesadas.
+												
+												
+												
+												
+												
+												
+												
+Dica do bloco 4: a pergunta certa não é "tem ACID?", e sim "de que garantia eu posso abrir mão — e quem cobre o buraco?". Relatório pesado não roda no banco de produção.												

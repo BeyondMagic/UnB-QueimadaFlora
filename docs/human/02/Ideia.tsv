@@ -1,0 +1,8 @@
+Grupo	Membros	Qual problema quer resolver com os dados (Domínio)	Qual a persona/usuário que tem interesse nos dados	Quais as perguntas que querem responder com os dados	Quais as fontes de dados
+
+G5	Cláudio	Falta de correlação centralizada entre ocorrências de focos de calor, perda de vegetação nativa e proximidade com Unidades de Conservação (UCs) e Áreas de Preservação Permanente (APPs) no DF.	Pesquisadores ambientais, analistas de órgãos reguladores (IBRAM/ICMBio) e ONGs de conservação ecológica local.	"- Quais Unidades de Conservação do DF registraram a maior densidade de focos de calor nos meses de seca, correlacionadas com a presença de espécies da flora do Cerrado sob risco de extinção?
+- Existe sobreposição espacial e temporal entre áreas com autorização recente de supressão vegetal concedida pelo IBRAM e a redução de vazão em bacias hidrográficas locais?
+- Quais propriedades rurais cadastradas no CAR-DF tiveram focos reincidentes em áreas de reserva legal nos últimos 24 meses?"	"•⁠  ⁠BDQueimadas (INPE) via shapefiles/CSV diários.
+•⁠ Dados Abertos IBRAM-DF e Geoportal DF (limites de UCs, hidrografia e APPs).
+•⁠ Sistema do Cadastro Ambiental Rural (CAR-DF).
+•⁠ Catálogo de Plantas e Fungos do Brasil (JBRJ) / Flora do Cerrado."

@@ -1,0 +1,37 @@
+Bloco 3 — Modelo de dados do projeto									
+Primeiro as entidades do domínio; depois as consultas que o sistema precisa responder.									
+									
+Linha 6 = exemplo fictício (não apague). Preencha a partir da linha 7.									
+Nº	Entidade do domínio	O que ela representa	Atributos principais	Relacionamentos com outras entidades	Identificador (chave)	Modelo escolhido (relacional | documento | chave-valor | grafo | série temporal | vetorial)	Modelos descartados	Normalizado ou desnormalizado?	Justificativa da escolha
+1	Empréstimo	Uma retirada de bicicleta por uma pessoa	id, matrícula, id_bicicleta, retirada, devolução, situação	Pertence a um Usuário; refere-se a uma Bicicleta	id_emprestimo (chave primária)	relacional	documento (relações são o centro do domínio)	normalizado	Integridade importa mais que flexibilidade: não pode existir empréstimo de bicicleta inexistente
+2	Foco_Calor	Ocorrência de incêndio detectada via satélite	latitude, longitude, data_hora, risco_fogo, satelite	Ocorre em uma Unidade_Conservacao ou Propriedade_Rural	id_foco (PK)	relacional (com extensão espacial)	séries temporais, documento	Normalizado	Precisa cruzar coordenadas com polígonos geográficos nativamente (funções GIS), o que modelos de séries temporais puros dificultam.
+3	Unidade_Conservacao	Área de proteção ambiental (UCs/APPs) no DF	nome_uc, tipo, area_hectares, limite_geom (polígono)	Contém Foco_Calor; Abriga Especie_Flora	id_uc (PK)	relacional (com extensão espacial)	chave-valor, documento	Normalizado	A integridade topológica do polígono (shapefile) importa muito. Relacional com PostGIS é o padrão da indústria para isso.
+4	Propriedade_Rural	Área privada cadastrada no Sistema CAR-DF	recibo_car, nome_sitio, area_reserva_geom (polígono)	Contém Foco_Calor	recibo_car (PK)	relacional (com extensão espacial)	grafo, documento	Normalizado	Permite criar restrições e relacionar polígonos oficiais com os dados de incêndio sem anomalias de atualização.
+5	Especie_Flora	Plantas do Cerrado com algum risco catalogado	nome_cientifico, familia, status_ameaca, localizacao_geom	Habita uma Unidade_Conservacao	id_especie (PK)	relacional	documento	Desnormalizado	Leituras rápidas para listar as espécies junto aos dados da UC sem precisar fazer joins em várias sub-tabelas botânicas.
+									
+									
+									
+									
+									
+									
+									
+									
+									
+									
+									
+									
+CONSULTAS QUE O SISTEMA PRECISA RESPONDER — escreva em português, não em SQL									
+Nº	Consulta em português	Quem pergunta	Frequência (por dia)	Tipo (pontual | agregada | de percurso)	Em que modelo ela fica fácil	Em que modelo ela fica sofrida	Por quê	Onde ela aparece no projeto (tela, relatório, API)	Observações
+1	Quantas bicicletas estão emprestadas agora?	Equipe de manutenção	~200	agregada	relacional	documento	Exige contar registros com filtro — trivial com índice e SQL	Painel da equipe de manutenção	Precisa refletir o estado do momento
+2	Quais UCs do DF registraram a maior densidade de focos de calor nos meses de seca?	Pesquisadores / IBRAM	Semanal / Mensal	agregada	relacional (espacial)	chave-valor	Exige a função ST_Intersects para cruzar o ponto de calor com o polígono da UC, seguido de um GROUP BY. Chave-valor não suporta geometria.	Painel (Dashboard) principal de relatórios.	
+3	Quais propriedades (CAR) tiveram reincidência de focos em área de reserva nos últimos 24 meses?	Analistas de fiscalização	Diária	agregada	relacional (espacial)	documento (MongoDB)	Exige filtro de tempo rigoroso e junção espacial complexa entre coordenadas INPE e shapefiles do CAR.	Relatório de fiscalização ou emissão de alerta.	
+									
+									
+									
+									
+									
+									
+									
+									
+									
+Dica do bloco 3: o modelo certo é aquele em que a consulta MAIS FREQUENTE é a mais simples de escrever. Se a pergunta central for sobre conexões de profundidade variável, o relacional vai doer.									

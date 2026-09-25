@@ -1,0 +1,23 @@
+Bloco 5 — Pipeline de dados do projeto (movimentação e transformação)											
+Uma linha por etapa, na ordem em que o dado percorre o caminho: fonte → ingestão → armazenamento → transformação → consumo.											
+											
+Linha 6 = exemplo fictício (não apague). Preencha a partir da linha 7.											
+Nº	Etapa	Origem	Destino	Transformações aplicadas (limpar, validar, juntar, deduplicar, agregar…)	ETL ou ELT	Lote ou contínuo	Frequência de execução	Custo de um atraso de 1 hora	Ferramenta prevista	Responsável na equipe	Como a equipe sabe que a etapa falhou
+0	Carga diária para análise	Banco principal (PostgreSQL)	Arquivo Parquet no armazenamento de objetos	Deduplicar empréstimos reenviados; derivar duração; anonimizar a matrícula	ETL	lote	diária, às 3h	Baixo — o painel é olhado uma vez por dia	Script Python + cron	Beto Lima	O job registra a contagem de linhas; se cair abaixo de 100, envia alerta no grupo
+1	Ingestão diária de focos de calor	APIs e arquivos do BDQueimadas (INPE)	Camada Bronze (Armazenamento de Arquivos / MinIO / S3)	Nenhuma (ingestão fiel dos arquivos brutos como extraídos da origem)	ELT	Lote	Diária	Baixo (análises históricas não sofrem com curtos atrasos)	Python + Orquestrador (Airflow/Cron)	Engenharia de Dados	Orquestrador reporta falha de timeout na requisição ou falta do arquivo no bucket
+2	Ingestão de dados fundiários e de flora 	Geoportal IBRAM, SICAR-DF e API SiBBr	Camada Bronze (Armazenamento de Arquivos / MinIO / S3)	Nenhuma (ingestão bruta de Shapefiles, GeoPackage e Darwin Core)	ELT	Lote	Semanal ou Eventual	Baixo	Python (GDAL/OGR)	Engenharia de Dados	O script falha por lentidão no geosserviço (WFS) ou anomalia na resposta
+3	Tratamento, limpeza e estruturação (Gold)	Camada Bronze (Bucket)	Banco Espacial Principal (PostgreSQL + PostGIS)	Descarte de atributos não utilizados; conversão e padronização de projeções geográficas (SRID); limpeza de linhas nulas ou inválidas	ELT	Lote	Diária (após etapa 1)	Médio (o painel de fiscalização espacial exibe a malha do dia anterior)	Python (GeoPandas, SQLAlchemy) ou dbt	Engenharia de Dados	As restrições do banco (PKs ou integridade topológica) revertem a transação ACID; orquestrador sinaliza erro
+4	Geração de agregações analíticas (Cubos)	Banco Espacial Principal (PostgreSQL + PostGIS)	Camada Analítica (arquivos GeoParquet via DuckDB)	Cruzamentos espaciais massivos (ST_Intersects entre focos e áreas); agregações de contagem por bioma e unidade de conservação	ELT	Lote	Diária (após etapa 3)	Baixo (dashboards continuarão operando normalmente na partição anterior)	SQL via DuckDB / dbt	Análise / Engenharia de Dados	O teste de validação (*freshness* ou volume) falha por gerar zero registros
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+Dica do bloco 5: extrair e carregar são mecânicos; o trabalho de verdade está no T. Cada transformação é uma decisão de negócio disfarçada de código — documente. Comece em lote e só migre para contínuo quando alguém souber dizer quanto custa o atraso.											

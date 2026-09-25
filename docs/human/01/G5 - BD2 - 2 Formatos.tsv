@@ -1,0 +1,23 @@
+Bloco 2 — Formatos de armazenamento e serialização											
+Uma linha por conjunto de dados que o projeto grava. A coluna de justificativa é a que vale nota.											
+											
+Linha 6 = exemplo fictício (não apague). Preencha a partir da linha 7.											
+Nº	Conjunto de dados	Fonte de origem (nº da aba 1)	Formato atual	Texto ou binário	Orientação (linha | coluna | não se aplica)	Tamanho estimado (em 1 ano)	Como é lido (registro inteiro | poucas colunas | busca por chave)	Frequência de leitura	Formato proposto	Justificativa da escolha	Ganho esperado (se houver troca)
+1	Histórico de empréstimos	1	CSV exportado do banco	texto	linha	~1,2 GB	poucas colunas (data e duração) sobre milhões de linhas	semanal, para relatórios	Parquet	A análise só usa 3 de 14 colunas; formato colunar evita ler o resto e comprime valores repetidos	Leitura estimada 6x mais rápida e ~70% menos disco
+2	Detecções e Histórico de Focos de Queimadas	1	CSV exportado do BDQueimadas / INPE	texto	linha	~350 MB a 1 GB	poucas colunas (lat, lon, data_hora, satelite, risco) sobre centenas de milhares de linhas	diária (agregações e cruzamentos de alertas)	GeoParquet / Parquet	Em CSV, números decimais de coordenadas consomem muitos bytes em texto. Para agregar por período ou satélite, o formato colunar lê apenas os atributos necessários sem varrer o arquivo inteiro (projection pushdown) e comprime dados contíguos.	Redução de ~65% do armazenamento em disco e consultas analíticas de 6x a 8x mais rápidas
+3	Malha de Unidades de Conservação e Áreas Queimadas (IBRAM)	2	Geosserviço OGC (WFS / GML) e Shapefile (.shp)	texto (WFS) / binário (Shapefile)	linha	~150 MB	registro inteiro com polígonos geométricos completos	mensal / eventual	PostGIS (Geometria binária indexada)	O tráfego de polígonos densos via WFS pela rede é lento e o Shapefile impõe limites severos em nomes de colunas e corrupção de múltiplos arquivos. No PostGIS, a geometria fica em formato binário otimizado com índice espacial (GiST).	Cruzamento espacial instantâneo via ST_Intersects em milissegundos e integridade topológica oficial
+4	Polígonos de Reserva Legal e Imóveis Rurais (CAR-DF)	3	GeoPackage (.gpkg) e CSV baixados do SICAR	binário (.gpkg) e texto (.csv)	linha	~600 MB	poucas colunas (recibo_car e geometria da reserva) para filtro espacial	semanal / mensal	GeoParquet (Data Lake) e PostGIS (Cruzamento)	O GeoPackage é baseado em SQLite orientado a linha, bom para edição local mas ineficiente para varreduras analíticas em lote de grandes áreas. GeoParquet compacta a malha fundiária e PostGIS executa as sobreposições espaciais com agilidade.	Redução de ~70% em disco no armazenamento histórico e alta performance em análises temporais de sobreposição com focos
+5	Catálogo de Espécies da Flora do Cerrado Ameaçadas	4	CSV / Darwin Core Archive (DwC-A) via SiBBr	texto	linha	~80 MB	busca pontual por chave / poucas colunas taxonômicas	semanal	Parquet / Tabela relacional	Os arquivos brutos do SiBBr trazem dezenas de colunas do padrão internacional Darwin Core, enquanto o projeto consulta apenas nome científico, família e status de ameaça. O formato Parquet descarta leitura do restante e evita erros de encoding.	Eliminação da leitura de atributos não utilizados e padronização binária tipada no pipeline
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+Dica do bloco 2: linha favorece quem lê registros inteiros; coluna favorece quem lê poucos atributos de muitos registros. Texto é legível e volumoso; binário é compacto e opaco.											

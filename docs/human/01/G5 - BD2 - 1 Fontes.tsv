@@ -1,0 +1,28 @@
+\														
+Uma linha por fonte. Se a equipe não souber responder vazão, pureza e previsibilidade, ainda não dá para desenhar o pipeline.														
+														
+Linha 6 = exemplo fictício (não apague). Preencha a partir da linha 7.														
+Nº	Nome da fonte	Tipo (usuário | sistema | interna | terceiro)	Quem ou o que gera	O que essa fonte contém	Formato em que chega (JSON, CSV, formulário, API…)	Volume estimado (por dia ou por mês)	Frequência de chegada (tempo real | horária | diária | eventual)	Vazão (alta | média | baixa)	Pureza (alta | média | baixa)	Previsibilidade do formato (alta | média | baixa)	Contém dado pessoal? (sim | não)	Base legal LGPD (se contém dado pessoal)	Retenção (por quanto tempo guardar)	O que quebra se essa fonte falhar
+1	Registro de empréstimo	usuário	Estudante no aplicativo	Matrícula, bicicleta, horário de retirada e de devolução	Formulário do app (JSON)	~400 registros/dia	tempo real	média	média	alta	sim	Execução de contrato (art. 7º, V)	5 anos (regra da prefeitura do campus)	Ninguém consegue retirar bicicleta; o sistema perde a função principal
+2	BDQueimadas (INPE)	Terceiro	Satélites de monitoramento do INPE	Coordenadas (lat/long), data/hora, bioma e satélite dos focos de calor	CSV / API / Shapefile	Milhares de focos/mês (varia com a seca)	Diária	Alta	Alta	Alta	Não	Não se aplica	Indefinida (série histórica)	Perde-se a detecção de focos de incêndio e o projeto fica sem o dado principal de calor.
+3	Dados Abertos IBRAM-DF / Geoportal DF	Terceiro	Técnicos e sistemas do Instituto Brasília Ambiental	Malha territorial, Unidades de Conservação, parques, hidrografia	GeoJSON / Shapefile / WMS	Centenas de polígonos/feições (baixo diário)	Eventual	Baixa	Média	Alta	Não	Não se aplica	Até a próxima atualização do mapa	Falta de contexto espacial distrital para cruzar informações de áreas protegidas.
+4	Sistema do Cadastro Ambiental Rural (SICAR / CAR-DF)	Terceiro	Proprietários rurais (autodeclaratório) validados pelo órgão	Limites de imóveis rurais, Áreas de Preservação (APP) e Reserva Legal	Shapefile / CSV	Milhares de polígonos (em lotes)	Eventual	Baixa	Baixa	Alta	Sim	Obrigação legal (art. 7º, II) / Políticas Públicas (art. 7º, III)	5+ anos (para auditoria)	Impossibilita atribuir os impactos e focos de incêndio a propriedades específicas.
+5	Catálogo de Espécies da Flora (SiBBr / JBRJ)	Terceiro	Pesquisadores e parceiros do SiBBr / JBRJ	Ocorrências de espécies (flora), taxonomia, status de ameaça	API / CSV (Darwin Core)	Milhares de registros pontuais	Eventual	Baixa	Média	Alta	Não (apenas nome de coletores/pesquisadores)	Não se aplica	Indefinida (série histórica)	Análises de impacto da seca/queimadas na biodiversidade local não poderão ser feitas.
+														
+														
+														
+														
+														
+														
+														
+														
+														
+														
+														
+														
+														
+														
+														
+														
+														
+Dica do bloco 1: dado emitido pelo sistema mas que descreve a pessoa (cliques, tempo de uso, trajeto) é dado comportamental — conta como dado de usuário para efeito de LGPD.														

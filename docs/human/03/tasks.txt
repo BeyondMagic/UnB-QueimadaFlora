@@ -1,0 +1,37 @@
+Pessoa
+Frente
+O que entrega
+
+Gabriel Souza
+Coordenação + pergunta de gestão
+Fecha a pergunta de gestão em uma frase e decide o recorte de escopo da E1 (veja abaixo). Acompanha o cronograma, confere o checklist e cria a tag e1.
+
+Manoel
+Modelagem espacial
+Esquema com PostGIS: focos de calor, satélite, UCs, APPs, hidrografia, imóveis do CAR e reserva legal. Colunas de geometria tipadas com SRID fixo, chaves, restrições e carimbos de tempo.
+
+Samuel
+Migrações
+Migrações versionadas, incluindo a criação da extensão PostGIS, índices espaciais (GiST) e restrições como ST_IsValid nas geometrias.
+
+João
+Focos de calor (BDQueimadas)
+Download automatizado e carga dos focos do INPE, com anos completos, filtrados para o DF. Vai ser a tabela de maior volume.
+
+Gabriel Fernando
+Camadas geográficas
+Download e carga dos shapefiles (UCs, APPs, hidrografia, CAR-DF) com ogr2ogr ou shp2pgsql, reprojetando tudo para o SRID definido pela Modelagem Espacial.
+
+Cláudio
+Docker Compose + README
+Compose com imagem PostGIS + serviço de carga (com GDAL, se usarem ogr2ogr), o "um comando" que sobe tudo, README e teste em máquina limpa.
+
+Elias
+Caracterização + ADR
+Números reais após a carga (focos por ano e por mês de seca, feições por camada, consultas espaciais que importam, latência tolerada), ADR e declaração de histórico junto com o Modelagem Espacial.
+
+Recorte de escopo. Com prazo até segunda e cinco fontes, eu não tentaria colocar tudo na E1. O núcleo que fecha bem é focos + UCs/APPs + CAR-DF, que já responde à pergunta dos focos reincidentes em reserva legal. A pergunta da flora ameaçada precisa de pontos de ocorrência com coordenadas, e um catálogo de nomes de espécies não costuma trazer isso. A pergunta da vazão precisa de dados hidrológicos, que não estão entre as fontes listadas. As duas podem entrar em entregas seguintes, desde que isso fique escrito.
+Volume. O DF é pequeno, então os focos só do DF em poucos anos podem render menos linhas do que parece. O Gabriel Souza deve conferir isso logo hoje. Se ficar magro, as saídas são pegar toda a série histórica disponível, incluir todos os satélites ou ampliar o recorte para o entorno.
+Pontos de modelagem para o ADR. Um mesmo fogo pode ser detectado por vários satélites. Como o INPE usa um satélite de referência para séries comparáveis, o esquema precisa guardar o satélite de cada foco. O foco tem hora do evento, que é a passagem do satélite, e ela é diferente da hora de ingestão. É exatamente a distinção de carimbos de tempo que o enunciado pede. Sobre histórico, os focos são naturalmente insert-only, mas o CAR muda: imóveis são retificados e limites mudam. Sobrescrever isso impede perguntar se o foco estava dentro da reserva legal na época.
+Risco de download. Essa parte fica com o João. Alguns portais de dados geográficos exigem captcha ou e-mail, e o download do SICAR costuma ser assim. Se não der para automatizar, a saída é versionar o recorte do DF no repositório, se ele couber em 5 MB compactado.
+Sugestão de pergunta de gestão para o Cláudio partir: "Quais imóveis rurais do CAR-DF tiveram focos de calor reincidentes dentro de reserva legal, APP ou a até 1 km de Unidades de Conservação entre 2015 e 2025?" Ela tem sujeito e recorte, e usa exatamente o núcleo de fontes da E1.
