@@ -140,9 +140,9 @@ print("TOTAL 2015-2025 | todos os satélites:", res.todos_sats.sum(), "| referê
 Conferência feita pela coordenação antes da tag. Os itens saem das entregas do planejamento; se o enunciado da E1 tiver checklist oficial, cruzar com ele.
 
 ### Pergunta e escopo (Gabriel Souza)
-- [ ] Pergunta de gestão, em uma frase, no README e na planilha
-- [ ] Recorte de escopo escrito no README, com o que ficou fora e por quê
-- [ ] Volume dos focos conferido e registrado na seção 4
+- [x] Pergunta de gestão, em uma frase, no README e na planilha
+- [x] Recorte de escopo escrito no README, com o que ficou fora e por quê
+- [x] Volume dos focos conferido e registrado na seção 4
 
 ### Modelagem espacial (Manoel)
 - [ ] Tabelas de focos, satélite, UCs, APPs, imóveis do CAR e reserva legal (hidrografia, se entrar)
@@ -157,9 +157,9 @@ Conferência feita pela coordenação antes da tag. Os itens saem das entregas d
 - [ ] Restrição `ST_IsValid` nas geometrias
 
 ### Focos de calor (João)
-- [ ] Download automatizado, sem passo manual
-- [ ] Anos completos, filtrados para o DF
-- [ ] SICAR automatizado ou recorte do DF versionado (até 5 MB compactado)
+- [x] Download automatizado, sem passo manual
+- [x] Anos completos, filtrados para o DF
+- [x] SICAR automatizado ou recorte do DF versionado (até 5 MB compactado)
 
 ### Camadas geográficas (Gabriel Fernando)
 - [ ] UCs, APPs e CAR-DF carregados com `ogr2ogr` ou `shp2pgsql`
