@@ -1,0 +1,34 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-queimadaflora}
+      POSTGRES_USER: ${POSTGRES_USER:-queimada}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-queimada}
+    ports:
+      - "${POSTGRES_PORT:-5434}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    image: flyway/flyway:10
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./migrations:/flyway/sql:ro
+    command: >
+      -url=jdbc:postgresql://db:5432/${POSTGRES_DB:-queimadaflora}
+      -user=${POSTGRES_USER:-queimada}
+      -password=${POSTGRES_PASSWORD:-queimada}
+      -locations=filesystem:/flyway/sql
+      -connectRetries=10
+      migrate info
+
+volumes:
+  pgdata:
