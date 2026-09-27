@@ -160,6 +160,7 @@ Entrega: [`docs/modelagem/esquema_espacial.md`](../modelagem/esquema_espacial.md
 - [x] Restrição `ST_IsValid` nas geometrias (`migrations/V2__cadastros_base.sql` e `V3__reserva_legal_e_focos.sql`)
 
 ### Focos de calor (João)
+
 - [x] Download automatizado, sem passo manual (`src/pipeline/extract_focos.py`)
 - [x] Anos completos, filtrados para o DF (38.945 focos em `data/processed/focos_df_2015_2025.csv`)
 - [x] Recorte do DF versionado em `data/raw/` (`AREA_IMOVEL.zip` e `RESERVA_LEGAL.zip`)
@@ -171,14 +172,16 @@ Entrega: [`docs/modelagem/esquema_espacial.md`](../modelagem/esquema_espacial.md
 - [x] Download automatizado de UCs e APPs do IBRAM (`src/pipeline/extract_camadas.py`)
 
 ### Docker Compose e README (Cláudio)
+
 - [x] Um comando sobe o PostGIS e roda a carga completa (focos, UCs, APPs e CAR-DF)
 - [x] Serviço de carga com GDAL (`load_camadas`, imagem própria com GDAL + geopandas)
 - [x] README com pré-requisitos, o comando, a pergunta de gestão e o escopo
 - [x] Teste em máquina limpa feito e registrado (quem, quando, commit)
 
 ### Caracterização e ADR (Elias)
-- [ ] Executar consulta da pergunta de gestão e registrar tempo de resposta medido — **atenção**: a junção completa (foco x imóvel x reserva legal/APP x UC) passa de 30s sem otimização, bem acima dos 500ms do ADR. Não é falta de índice: `reserva_legal` tem polígonos com até 54.373 vértices e o join foco x imóvel já gera 76.116 pares (imóveis do CAR se sobrepõem). Detalhe em [README.md](../../../README.md#desempenho-da-consulta-da-pergunta-de-gestão).
-- [ ] Números reais pós-carga (total de imóveis reincidentes, feições por camada)
+
+- [ ] Executar consulta da pergunta de gestão e registrar tempo de resposta medido (atenção: a junção completa passa de 30s sem otimização devido à densidade de vértices da reserva legal e sobreposição de imóveis do CAR; ver [README.md](../../../README.md#desempenho-da-consulta-da-pergunta-de-gestão))
+- [ ] Registrar números reais pós-carga no relatório (imóveis reincidentes encontrados e detalhamento da consulta)
 - [x] ADR cobre satélite por foco, hora do evento x hora de ingestão e histórico do CAR
 - [x] Declaração de histórico, com Manoel (`docs/modelagem/declaracao_historico.md`)
 
