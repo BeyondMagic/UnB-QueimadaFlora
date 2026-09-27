@@ -9,9 +9,10 @@ venv/
 .venv/
 ENV/
 
-# Dados locais brutos (downloads temporários)
-data/raw/
-*.zip
+# Dados locais brutos (downloads temporarios e descompactados)
+data/raw/*
+!data/raw/AREA_IMOVEL.zip
+!data/raw/RESERVA_LEGAL.zip
 *.tar.gz
 
 # IDEs e editores
