@@ -38,5 +38,7 @@ Disciplina Sistemas de Bancos de Dados 2 (FCTE / UnB, semestre 2026.2, Grupo G5)
 ## Onde encontrar mais detalhes
 
 - [docs/ai/CONTEXT.md](docs/ai/CONTEXT.md): contexto completo, regras técnicas de PostGIS e dados reais de volume.
+- [docs/modelagem/esquema_espacial.md](docs/modelagem/esquema_espacial.md): esquema PostGIS da E1 (SRID 31983, tabelas, chaves, carimbos).
+- [docs/modelagem/declaracao_historico.md](docs/modelagem/declaracao_historico.md): focos insert-only e snapshot do CAR.
 - [docs/adr/](docs/adr/): registros formais de decisões de arquitetura.
 - [docs/human/03/e1_pergunta_de_gest_o_e_escopo_gabriel.md](docs/human/03/e1_pergunta_de_gest_o_e_escopo_gabriel.md): relatório de coordenação, checklist da entrega e script de conferência de volume.

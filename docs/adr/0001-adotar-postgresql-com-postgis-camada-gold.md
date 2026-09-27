@@ -57,7 +57,10 @@ Toda tabela geográfica terá SRID explicitado na coluna de geometria, índice e
 
 ## Pontos de modelagem definidos
 
-* Dois carimbos de data/hora nos focos: `data_hora_evento` (leitura do sensor) e `data_hora_ingestao` (momento da carga). A reincidência usa a data do evento.
-* Preservação do satélite em cada foco, com marcação do satélite de referência do INPE (`AQUA_M-T`).
-* Focos são imutáveis (apenas inserção).
-* Limites do CAR sofrem retificações ao longo do tempo. Na E1 usamos o recorte atual do DF, mantendo a data de coleta documentada.
+Detalhe do DDL: [`docs/modelagem/esquema_espacial.md`](../modelagem/esquema_espacial.md). Histórico: [`docs/modelagem/declaracao_historico.md`](../modelagem/declaracao_historico.md).
+
+* SRID único: EPSG:31983 (SIRGAS 2000 / UTM 23S) em todas as geometrias.
+* Dois carimbos nos focos: `data_hora_evento` (passagem do satélite) e `data_hora_ingestao` (carga). A reincidência usa só o ano do evento.
+* Satélite em cada foco; flag `is_referencia` para AQUA_M-T. Todos os satélites entram na reincidência; séries comparáveis filtram a referência.
+* Focos insert-only (trigger bloqueia UPDATE/DELETE).
+* CAR na E1: snapshot com `data_download`. Retificações do SICAR sobrescritas impediriam perguntar se o foco estava na RL na época. Versionamento temporal (SCD Type 2) fica para depois da E1.

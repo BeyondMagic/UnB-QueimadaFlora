@@ -36,18 +36,19 @@ Como o volume total cabe com folga em disco e memória, a E1 carrega todos os sa
 
 ## 4. Banco e modelagem espacial
 
-Banco escolhido: PostgreSQL com extensão PostGIS (rodando via Docker local ou serviço gerenciado/Supabase). Ver ADR 0001.
+Banco escolhido: PostgreSQL com extensão PostGIS (Docker local ou Supabase). Ver ADR 0001.
+Esquema fechado: [`docs/modelagem/esquema_espacial.md`](../modelagem/esquema_espacial.md).
+Histórico: [`docs/modelagem/declaracao_historico.md`](../modelagem/declaracao_historico.md).
 
 Regras de modelagem:
-1. SRID explícito em todas as colunas de geometria (exemplo: EPSG:31983 para métrica local no DF ou EPSG:4326 geográfico). Nunca use `geometry` sem SRID.
+1. SRID fixo **EPSG:31983** em toda coluna `geom`. Nunca use `geometry` sem SRID.
 2. Índice GiST obrigatório em toda coluna geométrica.
-3. Validação topológica com `ST_IsValid` e saneamento de polígonos com `ST_MakeValid` na ingestão.
-4. Focos de calor são imutáveis (apenas inserção).
-5. Dois carimbos de data/hora nos focos:
-   * `data_hora_evento`: hora em que o satélite passou e detectou o calor. O ano da reincidência sai obrigatoriamente deste campo.
-   * `data_hora_ingestao`: momento em que o dado entrou no banco.
-6. Guardar o satélite em cada linha de foco e sinalizar o satélite de referência (`AQUA_M-T`) para comparações históricas.
-7. O CAR sofre retificações ao longo do tempo. Na E1 usamos o recorte atual do DF e registramos a data do download.
+3. Validação com `ST_IsValid` (e `ST_MakeValid` na ingestão se o shapefile vier inválido).
+4. Focos imutáveis (apenas inserção).
+5. Dois carimbos nos focos: `data_hora_evento` (reincidência) e `data_hora_ingestao` (auditoria).
+6. Satélite por foco; `is_referencia` para AQUA_M-T.
+7. CAR na E1: snapshot com `data_download`. Sem versionamento temporal ainda.
+8. Tabelas: `satelite`, `foco_calor`, `unidade_conservacao`, `area_preservacao_permanente`, `imovel_car`, `reserva_legal`, `hidrografia` (opcional).
 
 ## 5. Divisão de tarefas da equipe (E1)
 

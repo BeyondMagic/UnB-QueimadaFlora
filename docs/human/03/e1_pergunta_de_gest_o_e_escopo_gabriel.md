@@ -145,10 +145,12 @@ Conferência feita pela coordenação antes da tag. Os itens saem das entregas d
 - [x] Volume dos focos conferido e registrado na seção 4
 
 ### Modelagem espacial (Manoel)
-- [ ] Tabelas de focos, satélite, UCs, APPs, imóveis do CAR e reserva legal (hidrografia, se entrar)
-- [ ] Todas as colunas de geometria tipadas com o mesmo SRID fixo
-- [ ] Chaves primárias, estrangeiras e restrições
-- [ ] Foco com satélite e com hora do evento separada da hora de ingestão
+- [x] Tabelas de focos, satélite, UCs, APPs, imóveis do CAR e reserva legal (hidrografia, se entrar)
+- [x] Todas as colunas de geometria tipadas com o mesmo SRID fixo
+- [x] Chaves primárias, estrangeiras e restrições
+- [x] Foco com satélite e com hora do evento separada da hora de ingestão
+
+Entrega: [`docs/modelagem/esquema_espacial.md`](../modelagem/esquema_espacial.md), [`docs/modelagem/declaracao_historico.md`](../modelagem/declaracao_historico.md), DDL em `migrations/V2`–`V4`. SRID: **31983**.
 
 ### Migrações (Samuel)
 - [ ] Migrações versionadas que rodam do zero, em ordem
@@ -174,8 +176,8 @@ Conferência feita pela coordenação antes da tag. Os itens saem das entregas d
 ### Caracterização e ADR (Elias)
 - [ ] Números reais: focos por ano e por mês de seca, feições por camada
 - [ ] Consultas espaciais que importam e latência tolerada
-- [ ] ADR cobre satélite por foco, hora do evento x hora de ingestão e histórico do CAR
-- [ ] Declaração de histórico, com Manoel
+- [x] ADR cobre satélite por foco, hora do evento x hora de ingestão e histórico do CAR
+- [x] Declaração de histórico, com Manoel (`docs/modelagem/declaracao_historico.md`)
 
 ---
 
