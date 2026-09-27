@@ -153,29 +153,32 @@ Conferência feita pela coordenação antes da tag. Os itens saem das entregas d
 Entrega: [`docs/modelagem/esquema_espacial.md`](../modelagem/esquema_espacial.md), [`docs/modelagem/declaracao_historico.md`](../modelagem/declaracao_historico.md), DDL em `migrations/V2`–`V4`. SRID: **31983**.
 
 ### Migrações (Samuel)
-- [ ] Migrações versionadas que rodam do zero, em ordem
-- [ ] Criação da extensão PostGIS dentro das migrações
-- [ ] Índices GIST nas geometrias
-- [ ] Restrição `ST_IsValid` nas geometrias
+
+- [x] Migrações versionadas que rodam do zero, em ordem (Flyway no `docker-compose.yml`)
+- [x] Criação da extensão PostGIS dentro das migrações (`migrations/V1__extensao_postgis.sql`)
+- [x] Índices GIST nas geometrias (`migrations/V4__indices.sql`)
+- [x] Restrição `ST_IsValid` nas geometrias (`migrations/V2__cadastros_base.sql` e `V3__reserva_legal_e_focos.sql`)
 
 ### Focos de calor (João)
-- [x] Download automatizado, sem passo manual
-- [x] Anos completos, filtrados para o DF
-- [x] SICAR automatizado ou recorte do DF versionado (até 5 MB compactado)
+- [x] Download automatizado, sem passo manual (`src/pipeline/extract_focos.py`)
+- [x] Anos completos, filtrados para o DF (38.945 focos em `data/processed/focos_df_2015_2025.csv`)
+- [x] Recorte do DF versionado em `data/raw/` (`AREA_IMOVEL.zip` e `RESERVA_LEGAL.zip`)
+- [ ] Carga do CSV de focos na tabela `foco_calor` do PostGIS
 
 ### Camadas geográficas (Gabriel Fernando)
-- [ ] UCs, APPs e CAR-DF carregados com `ogr2ogr` ou `shp2pgsql`
-- [ ] Todas as camadas no SRID do esquema (conferir que só aparece um SRID por coluna de geometria)
+- [x] UCs, APPs e CAR-DF saneados e carregados via script (`src/pipeline/load_camadas.py`)
+- [x] Todas as camadas no SRID do esquema (reprojeção obrigatória para EPSG:31983)
+- [x] Download automatizado de UCs e APPs do IBRAM (`src/pipeline/extract_camadas.py`)
 
 ### Docker Compose e README (Cláudio)
-- [ ] Um comando sobe o PostGIS e roda a carga
-- [ ] Serviço de carga com GDAL, se usar `ogr2ogr`
-- [ ] README com pré-requisitos, o comando, a pergunta de gestão e o escopo
+- [x] Compose inicial com serviço de banco PostGIS e Flyway (`docker-compose.yml`)
+- [ ] Orquestração da carga completa em comando único (banco + migrações + scripts de carga)
+- [ ] README com instruções de execução e pré-requisitos
 - [ ] Teste em máquina limpa feito e registrado (quem, quando, commit)
 
 ### Caracterização e ADR (Elias)
-- [ ] Números reais: focos por ano e por mês de seca, feições por camada
-- [ ] Consultas espaciais que importam e latência tolerada
+- [ ] Executar consulta da pergunta de gestão e registrar tempo de resposta medido
+- [ ] Números reais pós-carga (total de imóveis reincidentes, feições por camada)
 - [x] ADR cobre satélite por foco, hora do evento x hora de ingestão e histórico do CAR
 - [x] Declaração de histórico, com Manoel (`docs/modelagem/declaracao_historico.md`)
 
