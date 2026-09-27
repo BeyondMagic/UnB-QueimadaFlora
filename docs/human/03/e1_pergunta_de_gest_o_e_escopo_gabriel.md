@@ -153,19 +153,22 @@ Conferência feita pela coordenação antes da tag. Os itens saem das entregas d
 Entrega: [`docs/modelagem/esquema_espacial.md`](../modelagem/esquema_espacial.md), [`docs/modelagem/declaracao_historico.md`](../modelagem/declaracao_historico.md), DDL em `migrations/V2`–`V4`. SRID: **31983**.
 
 ### Migrações (Samuel)
-- [ ] Migrações versionadas que rodam do zero, em ordem
-- [ ] Criação da extensão PostGIS dentro das migrações
-- [ ] Índices GIST nas geometrias
-- [ ] Restrição `ST_IsValid` nas geometrias
+
+- [x] Migrações versionadas que rodam do zero, em ordem (Flyway no `docker-compose.yml`)
+- [x] Criação da extensão PostGIS dentro das migrações (`migrations/V1__extensao_postgis.sql`)
+- [x] Índices GIST nas geometrias (`migrations/V4__indices.sql`)
+- [x] Restrição `ST_IsValid` nas geometrias (`migrations/V2__cadastros_base.sql` e `V3__reserva_legal_e_focos.sql`)
 
 ### Focos de calor (João)
-- [x] Download automatizado, sem passo manual
-- [x] Anos completos, filtrados para o DF
-- [x] SICAR automatizado ou recorte do DF versionado (até 5 MB compactado)
+- [x] Download automatizado, sem passo manual (`src/pipeline/extract_focos.py`)
+- [x] Anos completos, filtrados para o DF (38.945 focos em `data/processed/focos_df_2015_2025.csv`)
+- [x] Recorte do DF versionado em `data/raw/` (`AREA_IMOVEL.zip` e `RESERVA_LEGAL.zip`)
+- [x] Carga do CSV de focos na tabela `foco_calor` do PostGIS (serviço `load` do Compose, script `scripts/carga/carregar_focos.sql`)
 
 ### Camadas geográficas (Gabriel Fernando)
-- [x] UCs, APPs e CAR-DF carregados (geopandas/psycopg2 em vez de `ogr2ogr`/`shp2pgsql`, mesmo resultado): 84 UCs, 2.234 APPs, 21.047 imóveis, 13.499 reservas legais
+- [x] UCs, APPs e CAR-DF saneados e carregados (`src/pipeline/load_camadas.py`, empacotado no serviço `load_camadas` do Compose): 84 UCs, 2.234 APPs, 21.047 imóveis, 13.499 reservas legais
 - [x] Todas as camadas no SRID do esquema (conferido: só 31983 em cada coluna de geometria)
+- [x] Download automatizado de UCs e APPs do IBRAM (`src/pipeline/extract_camadas.py`)
 
 ### Docker Compose e README (Cláudio)
 - [x] Um comando sobe o PostGIS e roda a carga completa (focos, UCs, APPs e CAR-DF)
@@ -174,8 +177,8 @@ Entrega: [`docs/modelagem/esquema_espacial.md`](../modelagem/esquema_espacial.md
 - [x] Teste em máquina limpa feito e registrado (quem, quando, commit)
 
 ### Caracterização e ADR (Elias)
-- [ ] Números reais: focos por ano e por mês de seca, feições por camada
-- [ ] Consultas espaciais que importam e latência tolerada — **atenção**: a junção completa da pergunta de gestão (foco x imóvel x reserva legal/APP x UC) passa de 30s sem otimização, bem acima dos 500ms do ADR. Não é falta de índice: `reserva_legal` tem polígonos com até 54.373 vértices e o join foco x imóvel já gera 76.116 pares (imóveis do CAR se sobrepõem). Detalhe em [README.md](../../../README.md#desempenho-da-consulta-da-pergunta-de-gestão).
+- [ ] Executar consulta da pergunta de gestão e registrar tempo de resposta medido — **atenção**: a junção completa (foco x imóvel x reserva legal/APP x UC) passa de 30s sem otimização, bem acima dos 500ms do ADR. Não é falta de índice: `reserva_legal` tem polígonos com até 54.373 vértices e o join foco x imóvel já gera 76.116 pares (imóveis do CAR se sobrepõem). Detalhe em [README.md](../../../README.md#desempenho-da-consulta-da-pergunta-de-gestão).
+- [ ] Números reais pós-carga (total de imóveis reincidentes, feições por camada)
 - [x] ADR cobre satélite por foco, hora do evento x hora de ingestão e histórico do CAR
 - [x] Declaração de histórico, com Manoel (`docs/modelagem/declaracao_historico.md`)
 
