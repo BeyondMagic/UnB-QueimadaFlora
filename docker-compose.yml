@@ -30,5 +30,34 @@ services:
       -connectRetries=10
       migrate info
 
+  load:
+    image: postgres:16-alpine
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD:-queimada}
+    volumes:
+      - ./scripts/carga:/scripts:ro
+      - ./data/processed:/data/processed:ro
+    entrypoint: >
+      psql -h db -U ${POSTGRES_USER:-queimada} -d ${POSTGRES_DB:-queimadaflora}
+      -v ON_ERROR_STOP=1 -f /scripts/carregar_focos.sql
+
+  load_camadas:
+    build:
+      context: ./src/pipeline
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB:-queimadaflora}
+      DB_USER: ${POSTGRES_USER:-queimada}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-queimada}
+    volumes:
+      - ./data/raw:/app/data/raw
+
 volumes:
   pgdata:

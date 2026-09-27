@@ -164,18 +164,18 @@ Entrega: [`docs/modelagem/esquema_espacial.md`](../modelagem/esquema_espacial.md
 - [x] SICAR automatizado ou recorte do DF versionado (até 5 MB compactado)
 
 ### Camadas geográficas (Gabriel Fernando)
-- [ ] UCs, APPs e CAR-DF carregados com `ogr2ogr` ou `shp2pgsql`
-- [ ] Todas as camadas no SRID do esquema (conferir que só aparece um SRID por coluna de geometria)
+- [x] UCs, APPs e CAR-DF carregados (geopandas/psycopg2 em vez de `ogr2ogr`/`shp2pgsql`, mesmo resultado): 84 UCs, 2.234 APPs, 21.047 imóveis, 13.499 reservas legais
+- [x] Todas as camadas no SRID do esquema (conferido: só 31983 em cada coluna de geometria)
 
 ### Docker Compose e README (Cláudio)
-- [ ] Um comando sobe o PostGIS e roda a carga
-- [ ] Serviço de carga com GDAL, se usar `ogr2ogr`
-- [ ] README com pré-requisitos, o comando, a pergunta de gestão e o escopo
-- [ ] Teste em máquina limpa feito e registrado (quem, quando, commit)
+- [x] Um comando sobe o PostGIS e roda a carga completa (focos, UCs, APPs e CAR-DF)
+- [x] Serviço de carga com GDAL (`load_camadas`, imagem própria com GDAL + geopandas)
+- [x] README com pré-requisitos, o comando, a pergunta de gestão e o escopo
+- [x] Teste em máquina limpa feito e registrado (quem, quando, commit)
 
 ### Caracterização e ADR (Elias)
 - [ ] Números reais: focos por ano e por mês de seca, feições por camada
-- [ ] Consultas espaciais que importam e latência tolerada
+- [ ] Consultas espaciais que importam e latência tolerada — **atenção**: a junção completa da pergunta de gestão (foco x imóvel x reserva legal/APP x UC) passa de 30s sem otimização, bem acima dos 500ms do ADR. Não é falta de índice: `reserva_legal` tem polígonos com até 54.373 vértices e o join foco x imóvel já gera 76.116 pares (imóveis do CAR se sobrepõem). Detalhe em [README.md](../../../README.md#desempenho-da-consulta-da-pergunta-de-gestão).
 - [x] ADR cobre satélite por foco, hora do evento x hora de ingestão e histórico do CAR
 - [x] Declaração de histórico, com Manoel (`docs/modelagem/declaracao_historico.md`)
 

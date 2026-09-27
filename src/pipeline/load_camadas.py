@@ -363,6 +363,11 @@ def main():
         carregar_apps_ibram(conn, args.raw_dir, data_download)
         cods = carregar_imoveis_car(conn, args.raw_dir, data_download)
         carregar_reserva_legal(conn, args.raw_dir, data_download, cods)
+
+        with conn.cursor() as cur:
+            cur.execute("ANALYZE unidade_conservacao, area_preservacao_permanente, imovel_car, reserva_legal;")
+        conn.commit()
+
         print("\nCarga de todas as camadas geograficas finalizada com exito.")
     finally:
         conn.close()
