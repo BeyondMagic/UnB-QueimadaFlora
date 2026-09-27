@@ -38,7 +38,7 @@ Relação foco ↔ imóvel / RL / APP / UC: junção espacial (`ST_Intersects`, 
 
 | Tabela | Geometria | PK | FKs / restrições principais |
 | :--- | :--- | :--- | :--- |
-| `satelite` | — | `id_satelite` | `nome` UNIQUE; no máximo um `is_referencia = TRUE` |
+| `satelite` | - | `id_satelite` | `nome` UNIQUE; no máximo um `is_referencia = TRUE` |
 | `unidade_conservacao` | `MultiPolygon, 31983` | `id_uc` | `ST_IsValid`, `NOT ST_IsEmpty`; `data_download` |
 | `imovel_car` | `MultiPolygon, 31983` | `cod_imovel` (`DF-%`) | `ST_IsValid`; `data_download` (snapshot SICAR) |
 | `area_preservacao_permanente` | `MultiPolygon, 31983` | `id_app` | FK opcional `cod_imovel` → `imovel_car`; `ST_IsValid` |
@@ -66,7 +66,7 @@ Trigger `tg_foco_calor_imutavel`: bloqueia `UPDATE` e `DELETE`. `TRUNCATE` segue
 
 ## Como a pergunta cai no esquema
 
-> Quais imóveis rurais do CAR-DF tiveram focos de calor reincidentes dentro da reserva legal, em APP ou a até 1 km de Unidades de Conservação entre 2015 e 2025?
+> Quais imóveis rurais do Distrito Federal tiveram focos de calor reincidentes em áreas de reserva legal, de preservação permanente ou a até 1 km de unidades de conservação entre 2015 e 2025?
 
 1. Foco no período: `data_hora_evento` entre 2015-01-01 e 2025-12-31.
 2. Foco no imóvel: `ST_Intersects(foco.geom, imovel.geom)`.

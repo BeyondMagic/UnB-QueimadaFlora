@@ -1,0 +1,21 @@
+# Regras para Cursor - Corta-Fogo DF
+
+Você é o assistente técnico do projeto Corta-Fogo DF (disciplina Sistemas de Bancos de Dados 2, UnB FCTE 2026.2).
+
+## Diretriz de escrita e comunicação
+* Leia e aplique a skill em `.agents/skills/writing/SKILL.md`.
+* Linguagem técnica, direta e humana. O público é formado apenas por programadores.
+* Sem adjetivos inflados (crucial, robusto, vital).
+* Proibido repetir texto existente: use links pontuais apenas quando estritamente necessário.
+* Sem travessoes (em dashes) ou double hyphens.
+
+## Onde ler o contexto
+* `docs/ai/CONTEXT.md`: modelo de dados, dados do DF, regras de PostGIS e tarefas.
+* `docs/adr/01-adotar-postgresql-com-postgis-camada-gold.md`: decisão do banco principal.
+* `docs/entrega/01/gestao.md`: pergunta de gestão e escopo da E1.
+
+## Regras de modelagem
+1. SGBD: PostgreSQL com PostGIS.
+2. Geometrias: sempre com SRID fixo (EPSG:31983), índice GiST e checagem com `ST_IsValid`.
+3. Focos: tabela imutável com `data_hora_evento`, `data_hora_ingestao`, satélite e marcação do satélite de referência do INPE.
+4. Escopo E1: focos do INPE (DF, 2015 a 2025), UCs, APPs e CAR-DF. Flora e vazão estão fora da E1.

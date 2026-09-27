@@ -29,14 +29,14 @@ Imóveis do CAR são retificados. Limites de reserva legal e APP mudam. Se a car
 - Carregar **um** recorte do SICAR para o DF.
 - Registrar `data_download` em `imovel_car`, `reserva_legal` e `area_preservacao_permanente`.
 - Responder a pergunta de gestão com os limites desse recorte.
-- Documentar no README/ADR: a resposta é “dentro da RL/APP do snapshot baixado”, não “dentro da RL vigente em 2017”.
+- Documentar no README/ADR: a resposta é "dentro da RL/APP do snapshot baixado", não "dentro da RL vigente em 2017".
 
 ### O que não fazer na E1
 
 - Não implementar SCD Type 2 ainda (evita atrasar migrações e carga).
 - Não apagar `data_download` nem misturar recortes de datas diferentes na mesma tabela sem marcar a origem.
 
-### Caminho pós-E1 (quando precisar de “na época”)
+### Caminho pós-E1 (quando precisar de "na época")
 
 Versionar `imovel_car` e `reserva_legal` com vigência:
 
@@ -64,4 +64,4 @@ Mudança de limite de UC é rara no prazo da disciplina; o mesmo padrão de vig�
 
 1. Foco: imutável; satélite preservado; evento ≠ ingestão.
 2. CAR: snapshot com `data_download`; sobrescrita impede análise temporal da RL.
-3. Pós-E1: SCD Type 2 em imóvel/RL se a pergunta exigir “na época do foco”.
+3. Pós-E1: SCD Type 2 em imóvel/RL se a pergunta exigir "na época do foco".

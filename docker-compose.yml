@@ -2,9 +2,9 @@ services:
   db:
     image: postgis/postgis:16-3.4
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-queimadaflora}
-      POSTGRES_USER: ${POSTGRES_USER:-queimada}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-queimada}
+      POSTGRES_DB: ${POSTGRES_DB:-corta-fogo-df}
+      POSTGRES_USER: ${POSTGRES_USER:-corta-fogo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-corta-fogo}
     ports:
       - "${POSTGRES_PORT:-5434}:5432"
     volumes:
@@ -23,9 +23,9 @@ services:
     volumes:
       - ./migrations:/flyway/sql:ro
     command: >
-      -url=jdbc:postgresql://db:5432/${POSTGRES_DB:-queimadaflora}
-      -user=${POSTGRES_USER:-queimada}
-      -password=${POSTGRES_PASSWORD:-queimada}
+      -url=jdbc:postgresql://db:5432/${POSTGRES_DB:-corta-fogo-df}
+      -user=${POSTGRES_USER:-corta-fogo}
+      -password=${POSTGRES_PASSWORD:-corta-fogo}
       -locations=filesystem:/flyway/sql
       -connectRetries=10
       migrate info
@@ -36,12 +36,12 @@ services:
       migrate:
         condition: service_completed_successfully
     environment:
-      PGPASSWORD: ${POSTGRES_PASSWORD:-queimada}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-corta-fogo}
     volumes:
       - ./scripts/carga:/scripts:ro
       - ./data/processed:/data/processed:ro
     entrypoint: >
-      psql -h db -U ${POSTGRES_USER:-queimada} -d ${POSTGRES_DB:-queimadaflora}
+      psql -h db -U ${POSTGRES_USER:-corta-fogo} -d ${POSTGRES_DB:-corta-fogo-df}
       -v ON_ERROR_STOP=1 -f /scripts/carregar_focos.sql
 
   load_camadas:
@@ -53,9 +53,9 @@ services:
     environment:
       DB_HOST: db
       DB_PORT: 5432
-      DB_NAME: ${POSTGRES_DB:-queimadaflora}
-      DB_USER: ${POSTGRES_USER:-queimada}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-queimada}
+      DB_NAME: ${POSTGRES_DB:-corta-fogo-df}
+      DB_USER: ${POSTGRES_USER:-corta-fogo}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-corta-fogo}
     volumes:
       - ./data/raw:/app/data/raw
 

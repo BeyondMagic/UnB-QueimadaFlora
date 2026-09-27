@@ -1,6 +1,6 @@
-# Instruções para GitHub Copilot - UnB-QueimadaFlora
+# Instruções para GitHub Copilot - Corta-Fogo DF
 
-Projeto Foco no Incêndio DF (disciplina Sistemas de Bancos de Dados 2, FCTE / UnB, 2026.2).
+Projeto Corta-Fogo DF (disciplina Sistemas de Bancos de Dados 2, FCTE / UnB, 2026.2).
 
 ## Escrita e estilo
 
@@ -13,11 +13,12 @@ Projeto Foco no Incêndio DF (disciplina Sistemas de Bancos de Dados 2, FCTE / U
 ## Documentos de referência
 
 - `docs/ai/CONTEXT.md`: contexto geral, dados do DF, regras PostGIS e tarefas.
-- `docs/adr/0001-adotar-postgresql-com-postgis-camada-gold.md`: decisão sobre PostgreSQL e PostGIS.
+- `docs/adr/01-adotar-postgresql-com-postgis-camada-gold.md`: decisão sobre PostgreSQL e PostGIS.
+- `docs/entrega/01/gestao.md`: pergunta de gestão e escopo da E1.
 
 ## Regras técnicas
 
 1. PostgreSQL com PostGIS.
-2. Geometrias com SRID fixo, índices GiST e validação via `ST_IsValid`.
+2. Geometrias com SRID fixo (EPSG:31983), índices GiST e validação via `ST_IsValid`.
 3. Focos imutáveis, com satélite de referência e carimbos separados de evento e ingestão.
-4. Escopo E1: focos do INPE (DF, 2015 a 2025), UCs/APPs do IBRAM e imóveis/reserva do CAR-DF.
+4. Escopo E1: focos do INPE (DF, 2015 a 2025), unidades de conservação, áreas de preservação permanente e imóveis rurais (SICAR).

@@ -4,9 +4,9 @@ import psycopg2
 conn = psycopg2.connect(
     host="localhost",
     port=5434,
-    dbname="queimadaflora",
-    user="queimada",
-    password="queimada",
+    dbname="corta-fogo-df",
+    user="corta-fogo",
+    password="corta-fogo",
 )
 
 with conn.cursor() as cur:

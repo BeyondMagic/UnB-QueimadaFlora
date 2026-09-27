@@ -1,0 +1,98 @@
+[project]
+site_url = "https://beyondmagic.github.io/corta-fogo-df/"
+site_name = "Corta-Fogo DF"
+site_description = "Análise espacial e temporal de focos de calor, áreas protegidas e imóveis rurais no Distrito Federal"
+site_author = "Grupo G5 (FCTE / UnB, 2026.2)"
+
+copyright = "Grupo G5 | Sistemas de Bancos de Dados 2 | FCTE / UnB (2026.2)"
+
+repo_url = "https://github.com/BeyondMagic/corta-fogo-df"
+repo_name = "BeyondMagic/corta-fogo-df"
+edit_uri = "edit/main/docs/"
+extra_css = ["stylesheets/extra.css"]
+
+nav = [
+  { "Início" = "index.md" },
+  { "Modelagem do Sistema de Origem" = [
+      { "Pergunta de Gestão " = "entrega/01/gestao.md" },
+      { "Modelagem: PostGIS" = "modelagem/esquema_espacial.md" },
+      { "Modelagem: Histórico" = "modelagem/declaracao_historico.md" },
+  ]},
+  { "Decisões de Arquitetura" = [
+      { "Visão Geral" = "adr/README.md" },
+      { "ADR 01: Banco de Dados" = "adr/01-adotar-postgresql-com-postgis-camada-gold.md" }
+  ]},
+  # { "Diretrizes Técnicas" = [
+  #     { "Contexto do Projeto" = "ai/CONTEXT.md" },
+  #     { "Guia para Assistentes" = "ai/README.md" }
+  # ]}
+]
+
+[project.theme]
+language = "pt"
+features = [
+  "announce.dismiss",
+  "content.action.edit",
+  "content.code.annotate",
+  "content.code.copy",
+  "content.code.select",
+  "content.footnote.tooltips",
+  "content.tabs.link",
+  "content.tooltips",
+  "navigation.footer",
+  "navigation.indexes",
+  "navigation.instant",
+  "navigation.instant.prefetch",
+  "navigation.path",
+  "navigation.sections",
+  "navigation.top",
+  "navigation.tracking",
+  "search.highlight",
+]
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme)"
+toggle.icon = "lucide/sun-moon"
+toggle.name = "Seguir preferência do sistema"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+toggle.icon = "lucide/sun"
+toggle.name = "Mudar para modo escuro"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+toggle.icon = "lucide/moon"
+toggle.name = "Mudar para modo claro"
+
+[project.markdown_extensions]
+abbr = {}
+admonition = {}
+attr_list = {}
+def_list = {}
+footnotes = {}
+md_in_html = {}
+toc.permalink = true
+pymdownx.arithmatex.generic = true
+pymdownx.betterem = {}
+pymdownx.caret = {}
+pymdownx.details = {}
+pymdownx.emoji.emoji_generator = "zensical.extensions.emoji.to_svg"
+pymdownx.emoji.emoji_index = "zensical.extensions.emoji.twemoji"
+pymdownx.highlight.anchor_linenums = true
+pymdownx.highlight.line_spans = "__span"
+pymdownx.highlight.pygments_lang_class = true
+pymdownx.inlinehilite = {}
+pymdownx.keys = {}
+pymdownx.magiclink = {}
+pymdownx.mark = {}
+pymdownx.smartsymbols = {}
+pymdownx.superfences.custom_fences = [
+  { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" },
+]
+pymdownx.tabbed.alternate_style = true
+pymdownx.tabbed.combine_header_slug = true
+pymdownx.tasklist.custom_checkbox = true
+pymdownx.tilde = {}

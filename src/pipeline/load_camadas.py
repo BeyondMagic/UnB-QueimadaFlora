@@ -316,8 +316,8 @@ def main():
     )
     parser.add_argument(
         "--db-name",
-        default=os.getenv("DB_NAME", "queimadaflora"),
-        help="Nome do banco de dados (padrao: queimadaflora).",
+        default=os.getenv("DB_NAME", "corta-fogo-df"),
+        help="Nome do banco de dados (padrao: corta-fogo-df).",
     )
     parser.add_argument(
         "--db-user",
