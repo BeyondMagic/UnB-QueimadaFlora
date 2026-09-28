@@ -74,8 +74,9 @@ Armazenar ocorrências e cadastros territoriais como coleções de documentos JS
 
 Benchmark mínimo com o dado real do Distrito Federal (38.945 focos, 21.047 imóveis, 13.499 reservas legais, 2.234 APPs, 84 UCs), já carregado pelo `docker compose up`. Nenhum dado sintético.
 
-Script, comando de reprodução e detalhe da medição: [`scripts/benchmark/`](../../scripts/benchmark/README.md).
-Script, comando de reprodução e detalhe da medição: [`scripts/benchmark/`](https://github.com/BeyondMagic/corta-fogo-df/tree/main/scripts/benchmark).
+Scripts, comandos de reprodução e detalhes das medições:
+- PostgreSQL (com e sem índice GiST): [`scripts/benchmark/`](../../scripts/benchmark/README.md) ([código no repositório](https://github.com/BeyondMagic/corta-fogo-df/tree/main/scripts/benchmark)).
+- MongoDB (índice 2dsphere e iteração cliente): [`scripts/benchmark/mongodb/`](../../scripts/benchmark/mongodb/README.md) ([código no repositório](https://github.com/BeyondMagic/corta-fogo-df/tree/main/scripts/benchmark/mongodb)).
 
 ```sql
 EXPLAIN (ANALYZE, BUFFERS)
@@ -91,15 +92,18 @@ GROUP BY i.cod_imovel
 HAVING count(DISTINCT date_part('year', f.data_hora_evento)) >= 2;
 ```
 
-A mesma consulta roda duas vezes na mesma sessão: uma com o comportamento padrão do PostgreSQL (usa o índice GiST das geometrias), outra com `enable_indexscan`/`enable_bitmapscan` desligados, forçando varredura sequencial. Essa segunda execução isola o efeito do índice espacial sobre o mesmo dado, sem depender de uma segunda infraestrutura: aproxima a alternativa A ("PostgreSQL puro sem índice R-tree"), já que a ausência desse índice é exatamente o que a distingue da alternativa escolhida.
+A consulta do PostgreSQL roda duas vezes na mesma sessão: uma com o comportamento padrão (usa o índice GiST das geometrias), outra com `enable_indexscan`/`enable_bitmapscan` desligados, forçando varredura sequencial. Essa segunda execução isola o efeito do índice espacial sobre o mesmo dado, sem depender de uma segunda infraestrutura: aproxima a alternativa A ("PostgreSQL puro sem índice R-tree"), já que a ausência desse índice é exatamente o que a distingue da alternativa escolhida.
 
-| Alternativa | Tempo da consulta central |
-| :--- | :---: |
-| A. Sem índice espacial (varredura sequencial forçada) | > 5 min (timeout aplicado no script, não terminou) |
-| B. PostgreSQL + PostGIS, com índice GiST (escolhida) | 41,8 s (38.945 focos × 21.047 imóveis) |
-| C. MongoDB | não medido |
+| Alternativa | Tempo da consulta central | Mecanismo espacial | Observação |
+| :--- | :---: | :--- | :--- |
+| A. Sem índice espacial (PostgreSQL com varredura sequencial) | > 5 min | Varredura sequencial sem R-tree | Timeout configurado no script; não conclui em tempo hábil. |
+| B. PostgreSQL + PostGIS, com índice GiST (escolhida) | 41,8 s | Index Scan GiST nativo no SGBD | 38.945 focos × 21.047 imóveis avaliados em SQL com agregação. |
+| C. MongoDB 7.0 com índice `2dsphere` | > 180 s (timeout) | Índice 2dsphere + iteração cliente | Sem join espacial declarativo; projeção total de ~170 s. |
 
-A alternativa C não foi implementada nem medida: exigiria uma segunda pipeline completa de ingestão duplicando o mesmo dado real em coleções GeoJSON com índice `2dsphere`, fora do escopo de um benchmark mínimo. A justificativa técnica para descartá-la sem essa medição está na seção "Alternativas consideradas": o índice `2dsphere` só opera na esfera WGS84 (EPSG:4326), o que impede o cálculo métrico nativo em UTM 23S que a pergunta de gestão exige (`ST_DWithin` de 1.000 m), e o MongoDB não tem um operador de junção espacial entre coleções poligonais equivalente ao `ST_Intersects` acelerado por GiST.
+A alternativa C foi implementada e medida em ambiente conteinerizado isolado (2 CPUs e 2 GB de RAM), com o mesmo conjunto de dados reais do DF ([`scripts/benchmark/mongodb/`](../../scripts/benchmark/mongodb/README.md)). O teste confirmou três características operacionais do MongoDB nessa carga:
+1. **Ausência de join espacial declarativo:** o MongoDB rejeita predicados espaciais (`$geoIntersects`) dentro de expressões `$expr` no estágio `$lookup`. Isso impede executar o cruzamento em uma única consulta de agregação no servidor.
+2. **Sobrecarga de iteração cliente:** a resolução exige que o código cliente itere sobre os 21.047 imóveis do CAR-DF e envie consultas individuais contra o índice `2dsphere` dos focos. A uma taxa média de 120 imóveis por segundo, o tempo total projeta cerca de 170 s a 200 s, o que atinge o tempo limite configurado de 180 s.
+3. **Métrica angular versus métrica plana:** o índice `2dsphere` opera exclusivamente na esfera WGS84 em graus ou radianos. A verificação da faixa de 1.000 m de Unidades de Conservação exige converter metros para radianos (`$centerSphere`), enquanto o PostGIS executa `ST_DWithin` de forma exata e direta na projeção plana SIRGAS 2000 / UTM zone 23S (EPSG:31983).
 
 ## Decisão
 

@@ -26,4 +26,15 @@ A mesma consulta (a do ADR 0001, seção "Medição") roda duas vezes na mesma s
 | B. PostgreSQL + PostGIS (índice GiST) | 41,8 s |
 | A. Sem índice espacial (indexscan/bitmapscan desligados) | > 5 min (timeout, não terminou) |
 
-Não foi medida uma alternativa em MongoDB: exigiria uma segunda pipeline completa de ingestão duplicando o mesmo dado em GeoJSON com índice `2dsphere`, fora do escopo do benchmark mínimo desta entrega. A justificativa técnica para descartar essa alternativa sem medição está no ADR 0001.
+## Alternativa C: MongoDB com índice 2dsphere
+
+A implementação do benchmark mínimo para o MongoDB está disponível no diretório [`mongodb/`](mongodb/README.md), contendo o `docker-compose.mongo.yml` e scripts para:
+1. Ingestão dos dados em WGS84 (GeoJSON) e criação de índices espaciais `2dsphere`.
+2. Execução da consulta da pergunta de gestão via iteração por imóvel e verificação de predicados espaciais.
+3. Demonstração prática da impossibilidade de junção espacial declarativa via `$lookup`.
+
+Para executar o benchmark do MongoDB via Docker:
+
+```bash
+docker compose -f scripts/benchmark/mongodb/docker-compose.mongo.yml up --build
+```

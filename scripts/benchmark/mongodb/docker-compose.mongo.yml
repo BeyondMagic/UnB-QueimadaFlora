@@ -1,0 +1,40 @@
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: corta-fogo-mongo
+    restart: "no"
+    environment:
+      MONGO_INITDB_DATABASE: corta-fogo-mongo
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2g
+    volumes:
+      - mongodata:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  benchmark_runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: corta-fogo-mongo-runner
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      MONGO_URI: mongodb://mongo:27017
+      MONGO_DB: corta-fogo-mongo
+      DATA_DIR: /app/data
+    volumes:
+      - ../../../data:/app/data:ro
+      - .:/app/scripts:ro
+
+volumes:
+  mongodata:

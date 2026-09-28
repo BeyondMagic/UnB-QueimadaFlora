@@ -1,0 +1,16 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        gdal-bin libgdal-dev gcc g++ python3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV GDAL_CONFIG=/usr/bin/gdal-config
+
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY carregar_mongo.py benchmark_mongo.py ./
+
+ENTRYPOINT ["sh", "-c", "python carregar_mongo.py && python benchmark_mongo.py"]
