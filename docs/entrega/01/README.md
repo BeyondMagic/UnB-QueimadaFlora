@@ -284,6 +284,7 @@ Testes em máquina limpa (a partir de um volume vazio):
 | :--- | :--- | :--- | :--- |
 | Cláudio Henrique | 27/09/2026 | macOS, Colima, Compose v2 | 5 migrações e 5 tabelas carregadas; geometrias válidas; trigger bloqueou `UPDATE`; recarga sem duplicar |
 | Samuel Ribeiro | 28/09/2026 | Windows 11, Docker 29.7.2, Compose v5.5.1 | Carga em 2 min 30 s com build; mesmas contagens; 0 geometrias inválidas, SRID único 31983; trigger bloqueou `UPDATE`; recarga sem duplicar |
+| João V. Farias | 28/09/2026 | Linux (Artix x86_64, Ryzen 5 5600, 32 GB RAM), Docker 29.8.1, Compose v5.5.1 | Carga e migrações validadas na porta 5434; identificado requisito do módulo de kernel `overlay` para o containerd; geometrias íntegras e trigger testado |
 
 ## 11. Artefatos e Entregáveis
 

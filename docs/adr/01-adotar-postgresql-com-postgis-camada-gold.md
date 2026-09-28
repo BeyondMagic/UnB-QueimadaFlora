@@ -75,6 +75,7 @@ Armazenar ocorrências e cadastros territoriais como coleções de documentos JS
 Benchmark mínimo com o dado real do Distrito Federal (38.945 focos, 21.047 imóveis, 13.499 reservas legais, 2.234 APPs, 84 UCs), já carregado pelo `docker compose up`. Nenhum dado sintético.
 
 Script, comando de reprodução e detalhe da medição: [`scripts/benchmark/`](../../scripts/benchmark/README.md).
+Script, comando de reprodução e detalhe da medição: [`scripts/benchmark/`](https://github.com/BeyondMagic/corta-fogo-df/tree/main/scripts/benchmark).
 
 ```sql
 EXPLAIN (ANALYZE, BUFFERS)
