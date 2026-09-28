@@ -31,7 +31,10 @@ Plataforma de engenharia de dados para cruzamento espacial e temporal de focos d
 - [Entrega 4](https://unb-bd2.github.io/PlanoEnsino/projeto/e4/).
 -->
 
-### Uso de IA
+### Política de Inteligência Artificial
+
+- Os [Registros de Decisões de Arquitetura](adr/README.md) servem como guia para assistentes de IA, que devem seguir as decisões de arquitetura e os padrões de modelagem do projeto;
+- Para reduzir baboseiras, informações repetidas, irrelevantes ou incorretas, foi feito um [guia com instruções](https://github.com/BeyondMagic/corta-fogo-df/blob/main/AGENT.md) para assistentes e agentes, que devem ser seguidas rigorosamente.
 
 <!--
 
