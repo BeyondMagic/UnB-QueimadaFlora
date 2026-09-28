@@ -15,11 +15,30 @@ A equipe precisa de um banco transacional que valide geometrias na carga, proces
 ### Caracterização da carga
 
 - **Volume de focos:** 38.945 registros de 20 satélites entre 2015 e 2025 (2.350 com o satélite de referência AQUA_M-T). Tamanho bruto em CSV: 4,5 MB.
+- **Sazonalidade:** 84,3% dos focos (32.842) caem na estação seca do DF, de maio a setembro. Só setembro concentra 17.348 focos (44,5% do total). Os anos variam muito: 2018 teve 948 focos e 2024 teve 6.190.
+
+| Ano | Focos (todos os satélites) | Focos AQUA_M-T | Focos na seca (mai a set) | % na seca |
+| :--- | ---: | ---: | ---: | ---: |
+| 2015 | 1.832 | 155 | 1.354 | 73,9% |
+| 2016 | 2.269 | 229 | 1.990 | 87,7% |
+| 2017 | 3.590 | 287 | 2.760 | 76,9% |
+| 2018 | 948 | 88 | 903 | 95,3% |
+| 2019 | 3.761 | 213 | 3.124 | 83,1% |
+| 2020 | 3.258 | 196 | 2.283 | 70,1% |
+| 2021 | 5.535 | 259 | 5.180 | 93,6% |
+| 2022 | 5.741 | 251 | 5.034 | 87,7% |
+| 2023 | 1.368 | 89 | 1.042 | 76,2% |
+| 2024 | 6.190 | 349 | 5.604 | 90,5% |
+| 2025 | 4.453 | 234 | 3.568 | 80,1% |
+| **Total** | **38.945** | **2.350** | **32.842** | **84,3%** |
+
+Focos por mês somando 2015 a 2025: jan 261, fev 260, mar 328, abr 614, mai 1.214, jun 1.893, jul 4.687, ago 7.700, set 17.348, out 4.146, nov 323, dez 171.
+
 - **Camadas territoriais do DF:** 21.047 imóveis rurais no [SICAR](../glossario.md#sicar-car-sistema-nacional-de-cadastro-ambiental-rural), 13.499 [reservas legais](../glossario.md#reserva-legal), 2.234 polígonos de [preservação permanente](../glossario.md#app-area-de-preservacao-permanente) do IBRAM/SISDIA e 84 [unidades de conservação](../glossario.md#uc-unidade-de-conservacao).
 - **Complexidade geométrica:** feições de reserva legal alcançam até 54.373 vértices em um único polígono. Imóveis rurais do SICAR possuem sobreposições no DF, gerando 76.116 pares foco-imóvel no cruzamento espacial bruto.
 - **Taxa de escrita:** ingestão em lote periódica ou anual. Focos de calor são imutáveis (apenas inserção).
 - **Taxa de leitura:** consultas analíticas espaciais com filtros por ano do evento e identificador do imóvel.
-- **Latência:** consultas interativas de fiscalização devem responder em tempo hábil para triagem de vistorias.
+- **Latência:** a meta para a consulta da pergunta de gestão é de 500 ms, para uso interativo na triagem de vistorias. Acima de 5 s a consulta deixa de servir a esse uso (ver gatilho de revisão).
 
 ### Restrições não funcionais
 

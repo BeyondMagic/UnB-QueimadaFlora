@@ -58,6 +58,28 @@ Detalhamento dos focos de calor no Distrito Federal:
 
 - Total com todos os satélites: 38.945 registros de 20 sensores distintos (mínimo de 948 focos em 2018 e máximo de 6.190 em 2024).
 - Total com o satélite de referência (`AQUA_M-T`): 2.350 registros no mesmo período (fator de redução de 16,5 vezes).
+- Estação seca (maio a setembro): 32.842 focos, 84,3% do total. Só setembro concentra 17.348 focos (44,5%).
+
+| Ano | Todos os satélites | `AQUA_M-T` | Na seca (mai a set) | % na seca |
+| :--- | ---: | ---: | ---: | ---: |
+| 2015 | 1.832 | 155 | 1.354 | 73,9% |
+| 2016 | 2.269 | 229 | 1.990 | 87,7% |
+| 2017 | 3.590 | 287 | 2.760 | 76,9% |
+| 2018 | 948 | 88 | 903 | 95,3% |
+| 2019 | 3.761 | 213 | 3.124 | 83,1% |
+| 2020 | 3.258 | 196 | 2.283 | 70,1% |
+| 2021 | 5.535 | 259 | 5.180 | 93,6% |
+| 2022 | 5.741 | 251 | 5.034 | 87,7% |
+| 2023 | 1.368 | 89 | 1.042 | 76,2% |
+| 2024 | 6.190 | 349 | 5.604 | 90,5% |
+| 2025 | 4.453 | 234 | 3.568 | 80,1% |
+| **Total** | **38.945** | **2.350** | **32.842** | **84,3%** |
+
+Focos por mês, somando 2015 a 2025:
+
+| Jan | Fev | Mar | Abr | Mai | Jun | Jul | Ago | Set | Out | Nov | Dez |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 261 | 260 | 328 | 614 | 1.214 | 1.893 | 4.687 | 7.700 | 17.348 | 4.146 | 323 | 171 |
 
 ## 4. [Decisão Técnica de Arquitetura 0001](../../adr/01-adotar-postgresql-com-postgis-camada-gold.md)
 
@@ -206,7 +228,7 @@ A Entrega 1 não implementa tabelas de dimensão de variação lenta (SCD Tipo 2
 
 ## 9. Ordem de Carga e Dependências
 
-<p class="apresentador"><em>Apresentação: Samuel Rodrigues (Migrações)</em></p>
+<p class="apresentador"><em>Apresentação: Samuel Ribeiro (Migrações)</em></p>
 
 Para preservar a integridade referencial das chaves estrangeiras, a carga de dados obedece à ordem determinística:
 
@@ -244,6 +266,24 @@ Fluxo automatizado da execução:
 2. O Flyway aplica as migrações SQL em ordem (`V1__...` a `V5__...`).
 3. Os serviços de ingestão disparam em paralelo a carga de focos do INPE e das camadas territoriais.
 4. As rotinas garantem idempotência e saneamento topológico de polígonos inválidos.
+
+Conferência das contagens após a carga:
+
+```bash
+docker compose exec db psql -U corta-fogo -d corta-fogo-df -c "
+SELECT 'foco_calor', count(*) FROM foco_calor
+UNION ALL SELECT 'imovel_car', count(*) FROM imovel_car
+UNION ALL SELECT 'reserva_legal', count(*) FROM reserva_legal
+UNION ALL SELECT 'area_preservacao_permanente', count(*) FROM area_preservacao_permanente
+UNION ALL SELECT 'unidade_conservacao', count(*) FROM unidade_conservacao;"
+```
+
+Testes em máquina limpa (a partir de um volume vazio):
+
+| Quem | Data | Ambiente | Resultado |
+| :--- | :--- | :--- | :--- |
+| Cláudio Henrique | 27/09/2026 | macOS, Colima, Compose v2 | 5 migrações e 5 tabelas carregadas; geometrias válidas; trigger bloqueou `UPDATE`; recarga sem duplicar |
+| Samuel Ribeiro | 28/09/2026 | Windows 11, Docker 29.7.2, Compose v5.5.1 | Carga em 2 min 30 s com build; mesmas contagens; 0 geometrias inválidas, SRID único 31983; trigger bloqueou `UPDATE`; recarga sem duplicar |
 
 ## 11. Artefatos e Entregáveis
 

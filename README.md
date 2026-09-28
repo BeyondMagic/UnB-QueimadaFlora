@@ -66,7 +66,7 @@ Variáveis de ambiente aceitas (todas opcionais, com valor padrão): `POSTGRES_D
 ### Conferir a carga
 
 ```bash
-docker compose exec db psql -U queimada -d queimadaflora -c "
+docker compose exec db psql -U corta-fogo -d corta-fogo-df -c "
 SELECT 'foco_calor', count(*) FROM foco_calor
 UNION ALL SELECT 'imovel_car', count(*) FROM imovel_car
 UNION ALL SELECT 'reserva_legal', count(*) FROM reserva_legal
@@ -80,7 +80,11 @@ Resultado esperado: os números da tabela em "Status da carga".
 
 A junção espacial completa (focos dentro de imóvel, com interseção em reserva legal ou APP, ou a até 1 km de UC, agrupando por imóvel) não fica abaixo dos 500 ms previstos no ADR: sem otimização ela passa de 30 segundos. A causa não é falta de índice GiST (todos existem e são usados), é a complexidade real dos polígonos do SICAR: `reserva_legal` chega a 54.373 vértices numa única geometria, e o join `foco_calor` x `imovel_car` sozinho já leva ~4 s porque muitos imóveis do CAR-DF se sobrepõem (38.945 focos geram 76.116 pares foco-imóvel).
 
+Se tiver mudado `POSTGRES_USER` ou `POSTGRES_DB`, troque os valores de `-U` e `-d` pelos seus.
+
 ### Teste em máquina limpa
+
+#### Teste 1
 
 - Quem: Cláudio Henrique.
 - Quando: 27/09/2026.
@@ -88,13 +92,21 @@ A junção espacial completa (focos dentro de imóvel, com interseção em reser
 - Ambiente: macOS, runtime Docker via Colima, Docker Compose v2, a partir de `docker compose down -v` seguido de `docker compose up`, sem estado anterior.
 - Resultado: banco saudável e 5 migrações aplicadas em cerca de 25 segundos; as 5 tabelas da E1 carregadas com os números da seção "Status da carga"; satélite de referência único (`AQUA_M-T`); todas as geometrias válidas em SRID 31983; trigger de imutabilidade de `foco_calor` bloqueou um `UPDATE` de teste; segunda execução de `load` e `load_camadas` não duplicou linhas.
 
+#### Teste 2
+
+- Quem: Samuel Ribeiro.
+- Quando: 28/09/2026.
+- Commit: `7acf86d` ("fix: update image source path for Distrito Federal map in README").
+- Ambiente: Windows 11, Docker 29.7.2, Docker Compose v5.5.1, projeto Compose separado (`-p e1-teste-limpo`, `POSTGRES_PORT=5439`) com volume novo, sem imagem de `load_camadas` em cache.
+- Resultado: carga completa em 2 min 30 s, incluindo o build da imagem; 5 migrações aplicadas (V1 a V5); as 5 tabelas da E1 carregadas com os números da seção "Status da carga"; 0 geometrias inválidas e um único SRID (31983); satélite de referência único (`AQUA_M-T`); `UPDATE` em `foco_calor` bloqueado pelo trigger; segunda execução de `load` e `load_camadas` sem duplicar linhas; o comando de "Conferir a carga" rodou sem erro.
+
 ## Equipe e entregas da E1
 
 | Integrante | Frente | Entrega |
 | :--- | :--- | :--- |
 | Gabriel Souza | Coordenação e Pergunta de Gestão | Pergunta de gestão, escopo, contagem de focos e tag e1 |
 | Manoel Felipe | Modelagem de Dados | Esquema PostGIS com colunas geométricas tipadas e restrições |
-| Samuel Rodrigues | Migrações | Scripts versionados de criação do banco, extensão e índices GiST |
+| Samuel Ribeiro | Migrações | Scripts versionados de criação do banco, extensão e índices GiST |
 | João V. Farias | ADR e ingestão de dados de focos | Download automatizado e carga dos focos do INPE (DF, 2015 a 2025) |
 | Gabriel Fernando | Ingestão de camadas territoriais | Carga e reprojeção de shapefiles/geopackages do IBRAM e CAR-DF |
 | Cláudio Henrique | Infraestrutura | Compose do PostGIS, script de carga em um comando e teste em máquina limpa |

@@ -18,7 +18,7 @@ A equipe é formada por sete integrantes, cada um responsável por uma frente de
 | [Gabriel Souza](https://github.com/BeyondMagic/corta-fogo-df/commits?author=GabrielMS00)      | Coordenação e Pergunta de Gestão |     -     |     -     |     -     |
 | [João V. Farias](https://github.com/BeyondMagic/corta-fogo-df/commits?author=beyondmagic)     | ADR e ingestão de dados de focos |     -     |     -     |     -     |
 | [Manoel Felipe](https://github.com/BeyondMagic/corta-fogo-df/commits?author=Manoel835)       | Modelagem de Dados               |     -     |     -     |     -     |
-| [Samuel Rodrigues](https://github.com/BeyondMagic/corta-fogo-df/commits?author=SamuelRicosta) | Migrações                        |     -     |     -     |     -     |
+| [Samuel Ribeiro](https://github.com/BeyondMagic/corta-fogo-df/commits?author=SamuelRicosta) | Migrações                        |     -     |     -     |     -     |
 
 <!-- AI: vamos fazer uma tabela com o nome completo e matrícula dentro de um snippet (que abre quando aperta) -->
 
