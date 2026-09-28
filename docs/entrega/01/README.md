@@ -15,7 +15,7 @@
 
 ## 1. Visão Geral e Pergunta de Gestão
 
-*Apresentação: Gabriel Souza (Coordenação e Pergunta de Gestão)*
+<p class="apresentador"><em>Apresentação: Gabriel Souza (Coordenação e Pergunta de Gestão)</em></p>
 
 A modelagem responde à seguinte pergunta central de fiscalização ambiental:
 
@@ -27,7 +27,7 @@ A modelagem responde à seguinte pergunta central de fiscalização ambiental:
 
 ## 2. Definições Operacionais da Consulta
 
-*Apresentação: Elias F. (Caracterização e Métricas)*
+<p class="apresentador"><em>Apresentação: Elias F. (Caracterização e Métricas)</em></p>
 
 Cada termo da pergunta de gestão mapeia diretamente para regras relacionais e operadores espaciais no banco de dados:
 
@@ -42,7 +42,7 @@ Cada termo da pergunta de gestão mapeia diretamente para regras relacionais e o
 
 ## 3. Volumetria Real do Distrito Federal
 
-*Apresentação: Elias F. (Caracterização e Métricas)*
+<p class="apresentador"><em>Apresentação: Elias F. (Caracterização e Métricas)</em></p>
 
 A carga foi dimensionada sobre a totalidade dos dados abertos do Distrito Federal:
 
@@ -59,11 +59,22 @@ Detalhamento dos focos de calor no Distrito Federal:
 - Total com todos os satélites: 38.945 registros de 20 sensores distintos (mínimo de 948 focos em 2018 e máximo de 6.190 em 2024).
 - Total com o satélite de referência (`AQUA_M-T`): 2.350 registros no mesmo período (fator de redução de 16,5 vezes).
 
-## 4. Esquema Espacial e Relacional (PostGIS)
+## 4. [Decisão Técnica de Arquitetura 0001](../../adr/01-adotar-postgresql-com-postgis-camada-gold.md)
 
-*Apresentação: Manoel Felipe (Modelagem de Dados)*
+<p class="apresentador"><em>Apresentação: João V. Farias (ADR)</em></p>
 
-Especificação técnica do modelo transacional implementado no PostgreSQL 16 com a extensão PostGIS 3.4.
+Síntese das seis seções da decisão de arquitetura para a escolha do banco de dados principal:
+
+- **Contexto:** cruzamento de 39 mil focos contra 21 mil imóveis do CAR e reservas com até 54 mil. Exige projeção métrica (SIRGAS 2000 / UTM zone 23S, EPSG:31983) e validação topológica (`ST_IsValid`).
+- **Alternativas:** avaliação de três caminhos técnicos: PostgreSQL puro (sem índice R-tree para ponto em polígono), MongoDB (limitado a coordenadas esféricas WGS84 e sem operador eficiente de junção espacial) e PostgreSQL com PostGIS.
+- **Medição:** benchmark em contêiner (2 CPUs, 2 GB RAM): PostgreSQL puro estourou o tempo (> 180 s), MongoDB levou > 120 s em agregação, e PostgreSQL com PostGIS respondeu em 32,4 s via índice GiST.
+- **Decisão:** adoção do PostgreSQL 16 com PostGIS 3.4, SRID 31983 fixo, restrição `CHECK (ST_IsValid(geom) AND NOT ST_IsEmpty(geom))` e índices GiST em todas as geometrias.
+- **Consequências:** ganho de operadores espaciais nativos (`ST_Intersects`, `ST_DWithin` em metros) e integridade referencial com a tabela `satelite`; custo de dependência de binários compilados e reprojeção de dados na ingestão.
+- **Gatilho de revisão:** migração do processamento analítico para DuckDB com GeoParquet caso as consultas permaneçam acima de 5 s após simplificação topológica (`ST_SimplifyPreserveTopology`).
+
+## 5. Esquema Espacial e Relacional (PostGIS)
+
+<p class="apresentador"><em>Apresentação: Manoel Felipe (Modelagem de Dados)</em></p>
 
 ### Padrão de Projeção Espacial (SRID 31983)
 
@@ -131,9 +142,9 @@ O DDL das tabelas físicas é gerenciado por migrações versionadas do Flyway (
    - `reserva_legal(cod_imovel)` para junções diretas com o imóvel rural.
    - Índice parcial único em `satelite(is_referencia)` onde `is_referencia = TRUE`.
 
-## 5. Mapeamento da Consulta da Pergunta de Gestão
+## 6. Mapeamento da Consulta da Pergunta de Gestão
 
-*Apresentação: Manoel Felipe (Modelagem de Dados)*
+<p class="apresentador"><em>Apresentação: Manoel Felipe (Modelagem de Dados)</em></p>
 
 A consulta central é avaliada em quatro etapas espaciais e temporais:
 
@@ -145,32 +156,39 @@ A consulta central é avaliada em quatro etapas espaciais e temporais:
    - Foco está no raio de 1 km de uma unidade de conservação: `ST_DWithin(f.geom, u.geom, 1000)`.
 4. **Agrupamento e reincidência:** `COUNT(DISTINCT date_part('year', f.data_hora_evento)) >= 2` agrupado por `i.cod_imovel`.
 
-## 6. Declaração de Tratamento Histórico e Temporal
+## 7. Ingestão e Histórico dos Focos de Calor
 
-*Apresentação: João V. Farias (ADR e Ingestão de Focos) e Gabriel Fernando (Ingestão de Camadas)*
+<p class="apresentador"><em>Apresentação: João V. Farias (Ingestão de Focos)</em></p>
 
-O modelo do Corta-Fogo DF estabelece uma separação formal entre duas naturezas de dados:
-
-- **Ocorrências físicas (focos de calor):** eventos pontuais discretos no tempo e no espaço, que representam fatos consumados do mundo real.
-- **Cadastros territoriais (imóveis rurais e áreas protegidas):** dados regulatórios sujeitos a alterações administrativas, retificações de limites e revisões cadastrais ao longo dos anos.
+Os focos de calor do BDQueimadas (INPE) registram ocorrências físicas consumadas no tempo e no espaço. Por representarem fatos reais já detectados por satélites, esses dados exigem tratamento imutável no banco de dados.
 
 ### Focos de Calor: Semântica Imutável (Insert-Only)
 
-Os registros de focos de calor capturados por sensores orbitais não sofrem alterações após a detecção pelo INPE:
+Os registros de calor não sofrem alterações após a detecção orbital:
 
-1. **Operações permitidas:** apenas comandos `INSERT` são aceitos na tabela `foco_calor`. Comandos `UPDATE` e `DELETE` são bloqueados pelo trigger `tg_foco_calor_imutavel`.
+1. **Operações permitidas:** a tabela `foco_calor` aceita apenas comandos `INSERT`. Comandos `UPDATE` e `DELETE` são bloqueados pelo trigger `tg_foco_calor_imutavel`.
 2. **Modelo bitemporal:**
-   - `data_hora_evento`: carimbo temporal emitido pelo satélite no momento da passagem orbital. Extrai o ano para cálculo de reincidência.
-   - `data_hora_ingestao`: carimbo registrado pelo pipeline no momento da inserção na base, para auditoria e controle de recargas.
-3. **Múltiplos sensores:** um mesmo incêndio pode ser detectado por satélites distintos ou em passagens contíguas. O sistema preserva todas as detecções individuais sem deduplicação artificial na ingestão. A contagem agrega anos distintos de `data_hora_evento` por imóvel.
+   - `data_hora_evento`: carimbo temporal registrado pelo satélite na passagem orbital. É o valor usado para agrupar anos distintos na contagem de reincidência.
+   - `data_hora_ingestao`: carimbo registrado pelo pipeline na inserção no PostgreSQL, para auditoria e controle de recargas.
+3. **Múltiplos sensores orbitais:** um mesmo incêndio pode gerar detecções por satélites distintos ou em passagens contíguas. A ingestão preserva todas as ocorrências individuais sem deduplicação artificial. A contagem agrupa anos distintos de `data_hora_evento` por imóvel. Análises históricas comparáveis filtram o satélite de referência (`AQUA_M-T` via flag `is_referencia`).
+
+## 7. Cadastros Territoriais e Snapshots
+
+<p class="apresentador"><em>Apresentação: Gabriel Fernando (Ingestão de Camadas)</em></p>
+
+Imóveis rurais e áreas protegidas têm natureza cadastral e regulatória. Limites fundiários no SICAR e perímetros declarados pelo IBRAM/SISDIA passam por retificações administrativas periódicas.
 
 ### Cadastros Territoriais: Snapshot com Rastreabilidade
 
-Os limites declarados de imóveis no SICAR e áreas protegidas sofrem retificações periódicas:
+A Entrega 1 adota uma estratégia de corte estático oficial:
 
-1. **Recorte único consolidado:** a base carrega um recorte estático oficial do SICAR e do IBRAM para o Distrito Federal.
-2. **Rastreabilidade por data de extração:** as tabelas `imovel_car`, `reserva_legal`, `area_preservacao_permanente` e `unidade_conservacao` contêm a coluna obrigatória `data_download`, registrando o momento exato em que a geometria foi capturada da fonte oficial.
-3. **Escopo analítico:** as consultas da E1 respondem se o foco de calor atingiu o perímetro do imóvel ou área protegida conforme a delimitação territorial vigente no snapshot baixado.
+1. **Recorte consolidado:** a base carrega o conjunto oficial de feições do SICAR e do IBRAM para o Distrito Federal.
+2. **Rastreabilidade por data de extração:** as tabelas `imovel_car`, `reserva_legal`, `area_preservacao_permanente` e `unidade_conservacao` contêm a coluna obrigatória `data_download`, que registra a data de extração dos arquivos oficiais.
+3. **Escopo analítico:** as consultas respondem se o foco atingiu o imóvel ou a zona de amortecimento segundo a delimitação territorial vigente no snapshot carregado.
+
+### Ingestão e Saneamento das Camadas
+
+O pipeline de camadas baixa e descompacta os arquivos do SICAR e do SISDIA, converte todas as geometrias para o SRID 31983 e corrige autointerseções antes da carga. Esse processo assegura que cada polígono atenda à restrição `CHECK (ST_IsValid(geom) AND NOT ST_IsEmpty(geom))` definida no esquema físico.
 
 ### Resumo da Capacidade Analítica Atual
 
@@ -186,9 +204,9 @@ Os limites declarados de imóveis no SICAR e áreas protegidas sofrem retificaç
 
 A Entrega 1 não implementa tabelas de dimensão de variação lenta (SCD Tipo 2) para preservar a estabilidade da carga transacional. Caso análises de entregas futuras demandem saber se a área estava formalmente averbada na data exata da detecção, a modelagem prevê a adição de colunas temporais de vigência (`vigencia_inicio` e `vigencia_fim`) com cruzamento por intervalo semiaberto. -->
 
-## 7. Ordem de Carga e Dependências
+## 8. Ordem de Carga e Dependências
 
-*Apresentação: Cláudio Henrique (Infraestrutura)*
+<p class="apresentador"><em>Apresentação: Cláudio Henrique (Infraestrutura)</em></p>
 
 Para preservar a integridade referencial das chaves estrangeiras, a carga de dados obedece à ordem determinística:
 
@@ -210,9 +228,9 @@ Sequência de ingestão:
 4. `unidade_conservacao` e `hidrografia`: camadas de referência distrital sem dependência cadastral.
 5. `foco_calor`: tabela de eventos que referencia a tabela `satelite`.
 
-## 8. Como Reproduzir a Carga
+## 9. Como Reproduzir a Carga
 
-*Apresentação: Samuel Rodrigues (Migrações)*
+<p class="apresentador"><em>Apresentação: Samuel Rodrigues (Migrações)</em></p>
 
 A inicialização e a carga completa do banco ocorrem com um único comando na raiz do repositório:
 
@@ -227,9 +245,9 @@ Fluxo automatizado da execução:
 3. Os serviços de ingestão disparam em paralelo a carga de focos do INPE e das camadas territoriais.
 4. As rotinas garantem idempotência e saneamento topológico de polígonos inválidos.
 
-## 9. Artefatos e Entregáveis
+## 10. Artefatos e Entregáveis
 
-*Apresentação: Gabriel Souza (Coordenação e Pergunta de Gestão)*
+<p class="apresentador"><em>Apresentação: Gabriel Souza (Coordenação e Pergunta de Gestão)</em></p>
 
 Documentos complementares e código-fonte versionados no repositório:
 
@@ -239,7 +257,7 @@ Documentos complementares e código-fonte versionados no repositório:
 - **[Pipelines de Ingestão](https://github.com/BeyondMagic/corta-fogo-df/tree/main/src/pipeline):** extração do INPE e saneamento topológico com GeoPandas e GDAL.
 
 
-## 10. Referências
+## 11. Referências
 
 Fontes de dados, especificações e normas técnicas utilizadas na elaboração da Entrega 1:
 
