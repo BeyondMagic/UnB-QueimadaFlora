@@ -14,7 +14,7 @@ Projeto Corta-Fogo DF (disciplina Sistemas de Bancos de Dados 2, FCTE / UnB, 202
 
 - `docs/ai/CONTEXT.md`: contexto geral, dados do DF, regras PostGIS e tarefas.
 - `docs/adr/01-adotar-postgresql-com-postgis-camada-gold.md`: decisão sobre PostgreSQL e PostGIS.
-- `docs/entrega/01/gestao.md`: pergunta de gestão e escopo da E1.
+- `docs/entrega/01/README.md`: pergunta de gestão e visão geral da E1.
 
 ## Regras técnicas
 

@@ -13,14 +13,14 @@ extra_css = ["stylesheets/extra.css"]
 
 nav = [
   { "Visão Geral" = "index.md" },
-  { "Modelagem do Sistema de Origem" = [
-      { "Pergunta de Gestão " = "entrega/01/gestao.md" },
+  { "Entrega 1" = [
+      { "Visão Geral" = "entrega/01/README.md" },
       { "Modelagem: PostGIS" = "modelagem/esquema_espacial.md" },
       { "Modelagem: Histórico" = "modelagem/declaracao_historico.md" },
   ]},
   { "Decisões de Arquitetura" = [
       { "Visão Geral" = "adr/README.md" },
-      { "ADR 01: Banco de Dados" = "adr/01-adotar-postgresql-com-postgis-camada-gold.md" }
+      { "1ª: Banco de Dados" = "adr/01-adotar-postgresql-com-postgis-camada-gold.md" }
   ]},
   # { "Diretrizes Técnicas" = [
   #     { "Contexto do Projeto" = "ai/CONTEXT.md" },

@@ -1,4 +1,4 @@
-# Corta-Fogo DF
+# UnB-QueimadaFlora (Foco no Incêndio DF)
 
 Projeto de Engenharia de Dados para análise de focos de calor, áreas protegidas e imóveis rurais no Distrito Federal.
 
@@ -8,14 +8,14 @@ Disciplina Sistemas de Bancos de Dados 2 (FCTE / UnB, semestre 2026.2, Grupo G5)
 
 ### Pergunta de gestão
 
-> Quais imóveis rurais do Distrito Federal tiveram focos de calor reincidentes em áreas de reserva legal, de preservação permanente ou a até 1 km de unidades de conservação entre 2015 e 2025?
+> Quais imóveis rurais do CAR-DF tiveram focos de calor reincidentes dentro da reserva legal, em APP ou a até 1 km de Unidades de Conservação entre 2015 e 2025?
 
 ### O que entra na E1
 
 - Focos de calor: BDQueimadas (INPE), recorte do DF de 2015 a 2025, todos os satélites (38.945 focos no total).
-- Unidades de conservação e áreas de preservação permanente: IBRAM / Geoportal DF.
-- Imóveis rurais e reserva legal: Cadastro Ambiental Rural (SICAR).
-- Banco de dados: PostgreSQL com extensão PostGIS (ver [ADR 01](docs/adr/01-adotar-postgresql-com-postgis-camada-gold.md)).
+- Unidades de Conservação e APPs: IBRAM / Geoportal DF.
+- Imóveis rurais e reserva legal: SICAR / CAR-DF.
+- Banco de dados: PostgreSQL com extensão PostGIS (ver [ADR 0001](docs/adr/01-adotar-postgresql-com-postgis-camada-gold.md)).
 
 ### O que ficou para entregas seguintes
 
@@ -66,7 +66,7 @@ Variáveis de ambiente aceitas (todas opcionais, com valor padrão): `POSTGRES_D
 ### Conferir a carga
 
 ```bash
-docker compose exec db psql -U corta-fogo -d corta-fogo-df -c "
+docker compose exec db psql -U queimada -d queimadaflora -c "
 SELECT 'foco_calor', count(*) FROM foco_calor
 UNION ALL SELECT 'imovel_car', count(*) FROM imovel_car
 UNION ALL SELECT 'reserva_legal', count(*) FROM reserva_legal
@@ -78,7 +78,7 @@ Resultado esperado: os números da tabela em "Status da carga".
 
 ### Desempenho da consulta da pergunta de gestão
 
-A junção espacial completa (focos dentro de imóvel, com interseção em área de reserva legal, de preservação permanente ou a até 1 km de unidade de conservação, agrupando por imóvel) não fica abaixo dos 500 ms previstos no ADR: sem otimização ela passa de 30 segundos. A causa não é falta de índice GiST (todos existem e são usados), é a complexidade real dos polígonos do SICAR: `reserva_legal` chega a 54.373 vértices numa única geometria, e o join `foco_calor` x `imovel_car` sozinho já leva ~4 s porque muitos imóveis cadastrados se sobrepõem no DF (38.945 focos geram 76.116 pares foco-imóvel).
+A junção espacial completa (focos dentro de imóvel, com interseção em reserva legal ou APP, ou a até 1 km de UC, agrupando por imóvel) não fica abaixo dos 500 ms previstos no ADR: sem otimização ela passa de 30 segundos. A causa não é falta de índice GiST (todos existem e são usados), é a complexidade real dos polígonos do SICAR: `reserva_legal` chega a 54.373 vértices numa única geometria, e o join `foco_calor` x `imovel_car` sozinho já leva ~4 s porque muitos imóveis do CAR-DF se sobrepõem (38.945 focos geram 76.116 pares foco-imóvel).
 
 ### Teste em máquina limpa
 
@@ -96,7 +96,7 @@ A junção espacial completa (focos dentro de imóvel, com interseção em área
 | Manoel Fernando | Modelagem espacial | Esquema PostGIS com colunas geométricas tipadas e restrições |
 | Samuel Rodrigues | Migrações | Scripts versionados de criação do banco, extensão e índices GiST |
 | João Victor | Focos de calor | Download automatizado e carga dos focos do INPE (DF, 2015 a 2025) |
-| Gabriel Fernando | Camadas geográficas | Carga e reprojeção de dados territoriais do IBRAM e SICAR |
+| Gabriel Fernando | Camadas geográficas | Carga e reprojeção de shapefiles/geopackages do IBRAM e CAR-DF |
 | Cláudio Henrique | Docker e execução | Compose do PostGIS, script de carga em um comando e teste em máquina limpa |
 | Elias F. | Métricas e ADR | Números reais pós-carga e documentação no ADR |
 
@@ -106,4 +106,4 @@ A junção espacial completa (focos dentro de imóvel, com interseção em área
 - [docs/modelagem/esquema_espacial.md](docs/modelagem/esquema_espacial.md): esquema PostGIS da E1 (SRID 31983, tabelas, chaves, carimbos).
 - [docs/modelagem/declaracao_historico.md](docs/modelagem/declaracao_historico.md): focos insert-only e snapshot do CAR.
 - [docs/adr/](docs/adr/): registros formais de decisões de arquitetura.
-- [docs/entrega/01/gestao.md](docs/entrega/01/gestao.md): relatório de coordenação, checklist da entrega e script de conferência de volume.
+- [docs/entrega/01/README.md](docs/entrega/01/README.md): visão geral, definições operacionais e volumetria da E1.

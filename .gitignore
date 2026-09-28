@@ -27,3 +27,5 @@ Thumbs.db
 
 # MkDocs build
 site/
+
+.cache/

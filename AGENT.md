@@ -1,6 +1,6 @@
 # Instruções para Agentes de IA
 
-Você está trabalhando no repositório Corta-Fogo DF (corta-fogo-df), da disciplina Sistemas de Bancos de Dados 2 (FCTE / UnB, 2026.2).
+Você está trabalhando no repositório UnB-QueimadaFlora (Foco no Incêndio DF), da disciplina Sistemas de Bancos de Dados 2 (FCTE / UnB, 2026.2).
 
 ## 1. Diretriz de escrita e comunicação (Obrigatório)
 
@@ -20,11 +20,11 @@ Consulte sempre:
 - [`docs/modelagem/esquema_espacial.md`](docs/modelagem/esquema_espacial.md): esquema PostGIS fechado (SRID 31983).
 - [`docs/modelagem/declaracao_historico.md`](docs/modelagem/declaracao_historico.md): histórico de focos e CAR.
 - [`docs/adr/01-adotar-postgresql-com-postgis-camada-gold.md`](docs/adr/01-adotar-postgresql-com-postgis-camada-gold.md): decisão de arquitetura da camada Gold.
-- [`docs/entrega/01/gestao.md`](docs/entrega/01/gestao.md): escopo e checklist da E1.
+- [`docs/entrega/01/README.md`](docs/entrega/01/README.md): escopo e visão geral da E1.
 
 ## 3. Regras inegociáveis de código e modelagem
 
 1. PostgreSQL com PostGIS.
 2. Colunas de geometria sempre com SRID 31983, índice GiST e validação `ST_IsValid` (ver `docs/modelagem/esquema_espacial.md`).
 3. Focos imutáveis, com satélite, flag do satélite de referência e carimbos separados de `data_hora_evento` e `data_hora_ingestao`.
-4. Escopo E1: apenas focos do INPE, unidades de conservação, áreas de preservação permanente e imóveis rurais (SICAR). Flora e vazão estão fora da E1. Hidrografia é opcional.
+4. Escopo E1: apenas focos do INPE, UCs, APPs e imóveis/reserva do CAR-DF. Flora e vazão estão fora da E1. Hidrografia é opcional.

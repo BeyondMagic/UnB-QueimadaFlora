@@ -1,19 +1,16 @@
-# Modelagem espacial (E1)
+# Esquema Espacial e Relacional (PostGIS)
 
-Entrega de Manoel Fernando. Esquema PostGIS que responde à pergunta de gestão da E1.
+Especificação técnica do modelo de dados transacional da Entrega 1, implementado no PostgreSQL 16 com a extensão PostGIS 3.4.
 
-DDL versionado em [`migrations/`](../../migrations/). Índices e extensão ficam com Samuel; a carga, com João e Gabriel Fernando.
+## 1. Padrão de Projeção Espacial (SRID 31983)
 
-## SRID fixo: 31983
+Todas as colunas geométricas do banco utilizam obrigatoriamente a projeção métrica **EPSG:31983** (SIRGAS 2000 / UTM zone 23S).
 
-Todas as colunas `geom` usam **EPSG:31983** (SIRGAS 2000 / UTM zone 23S).
+- **Justificativa geográfica:** o território do Distrito Federal está situado integralmente no fuso UTM 23S.
+- **Eficiência computacional:** coordenadas projetadas em metros permitem calcular distâncias e buffers (como a faixa de 1.000 metros em torno de unidades de conservação via `ST_DWithin`) diretamente no plano cartesiano, sem conversão computacional para o tipo `geography`.
+- **Validação de esquema:** nenhuma coluna pode ser definida como tipo genérico `geometry` sem SRID declarado. A conferência é garantida pelo catálogo do PostGIS.
 
-- O DF fica na zona UTM 23S.
-- Coordenadas em metros: `ST_DWithin(geom, geom, 1000)` mede 1 km sem cast para `geography`.
-- Scripts de carga (`ogr2ogr`, `shp2pgsql`, GeoPandas) devem reprojetar para 31983 antes ou durante o insert.
-- Conferência: `SELECT DISTINCT ST_SRID(geom) FROM <tabela>;` deve devolver só `31983`.
-
-Focos do INPE chegam em lon/lat (EPSG:4326). Exemplo de conversão na carga:
+As detecções de focos de calor chegam na base do INPE em coordenadas geográficas WGS84 (EPSG:4326). A conversão métrica é executada na ingestão:
 
 ```sql
 ST_Transform(
@@ -22,76 +19,75 @@ ST_Transform(
 )
 ```
 
-## Diagrama lógico
+## 2. Modelo Lógico e Relacionamentos
 
+A estrutura conjuga integridade relacional clássica (chaves estrangeiras) com relacionamentos topológicos espaciais:
+
+```text
+satelite (1) ──< foco_calor (N)
+imovel_car (1) ──< reserva_legal (N)
+imovel_car (1) ──< area_preservacao_permanente (N) [relacional opcional]
+
+foco_calor ──[ junção espacial: ST_Intersects ]──> imovel_car
+foco_calor ──[ junção espacial: ST_Intersects ]──> reserva_legal
+foco_calor ──[ junção espacial: ST_Intersects ]──> area_preservacao_permanente
+foco_calor ──[ junção espacial: ST_DWithin    ]──> unidade_conservacao
 ```
-satelite 1──* foco_calor
-imovel_car 1──* reserva_legal
-imovel_car 1──* area_preservacao_permanente   (FK opcional; NULL se APP for distrital)
-unidade_conservacao                           (junção só espacial com foco)
-hidrografia                                   (opcional na E1; fora da pergunta)
-```
 
-Relação foco ↔ imóvel / RL / APP / UC: junção espacial (`ST_Intersects`, `ST_DWithin`), não FK.
+- **Relações relacionais:** chaves estrangeiras formais vinculam cada foco de calor ao seu sensor na tabela `satelite`, e cada polígono de reserva legal ao seu respectivo cadastro em `imovel_car`.
+- **Relações espaciais:** o vínculo entre ocorrências de calor e os perímetros territoriais é dinâmico e avaliado no plano geométrico por operadores topológicos (`ST_Intersects` e `ST_DWithin`), sem colunas de chave estrangeira nas ocorrências.
 
-## Tabelas
+## 3. Especificação das Tabelas
 
-| Tabela | Geometria | PK | FKs / restrições principais |
+O DDL das tabelas físicas é gerenciado por migrações versionadas do Flyway (diretório `migrations/`).
+
+| Tabela | Tipo geométrico | Chave primária | Restrições de integridade e regras |
 | :--- | :--- | :--- | :--- |
-| `satelite` | - | `id_satelite` | `nome` UNIQUE; no máximo um `is_referencia = TRUE` |
-| `unidade_conservacao` | `MultiPolygon, 31983` | `id_uc` | `ST_IsValid`, `NOT ST_IsEmpty`; `data_download` |
-| `imovel_car` | `MultiPolygon, 31983` | `cod_imovel` (`DF-%`) | `ST_IsValid`; `data_download` (snapshot SICAR) |
-| `area_preservacao_permanente` | `MultiPolygon, 31983` | `id_app` | FK opcional `cod_imovel` → `imovel_car`; `ST_IsValid` |
-| `reserva_legal` | `MultiPolygon, 31983` | `id_reserva` | FK `cod_imovel` → `imovel_car` ON DELETE CASCADE |
-| `hidrografia` | `MultiLineString, 31983` | `id_trecho` | Opcional na E1; `ST_IsValid` |
-| `foco_calor` | `Point, 31983` | `id_foco` | FK `id_satelite`; `data_hora_evento` ≠ `data_hora_ingestao`; insert-only |
+| `satelite` | Sem geometria | `id_satelite` | Nome único; no máximo um registro com flag `is_referencia = TRUE`. |
+| `imovel_car` | `MultiPolygon, 31983` | `cod_imovel` | Formato padrão `DF-%`; restrição `CHECK (ST_IsValid(geom) AND NOT ST_IsEmpty(geom))`; metadado `data_download`. |
+| `reserva_legal` | `MultiPolygon, 31983` | `id_reserva` | Chave estrangeira `cod_imovel` referenciando `imovel_car` com `ON DELETE CASCADE`; restrição `ST_IsValid`. |
+| `area_preservacao_permanente` | `MultiPolygon, 31983` | `id_app` | Chave estrangeira opcional para `imovel_car`; restrição `ST_IsValid`. |
+| `unidade_conservacao` | `MultiPolygon, 31983` | `id_uc` | Restrição `CHECK (ST_IsValid(geom) AND NOT ST_IsEmpty(geom))`; metadado `data_download`. |
+| `foco_calor` | `Point, 31983` | `id_foco` | Chave estrangeira para `satelite`; constraint `data_hora_ingestao >= data_hora_evento`; trigger de imutabilidade. |
+| `hidrografia` | `MultiLineString, 31983` | `id_trecho` | Tabela auxiliar opcional na E1; restrição `ST_IsValid`. |
 
-## Carimbos de tempo nos focos
+### Carimbos temporais nos focos
 
-| Coluna | Significado | Uso na reincidência |
-| :--- | :--- | :--- |
-| `data_hora_evento` | Passagem do satélite / detecção | Sim. Extrair o ano daqui. |
-| `data_hora_ingestao` | Momento da carga no banco | Não. Só auditoria do pipeline. |
+A tabela `foco_calor` implementa modelo bitemporal:
+- `data_hora_evento`: momento exato da detecção na passagem do satélite. O ano da reincidência é extraído exclusivamente deste campo.
+- `data_hora_ingestao`: momento da carga no banco pelo pipeline, utilizado para auditoria e controle de recargas.
 
-Constraint: `data_hora_ingestao >= data_hora_evento`.
+A imutabilidade das detecções é garantida pelo trigger `tg_foco_calor_imutavel`, que rejeita comandos `UPDATE` e `DELETE`. O recarregamento em desenvolvimento é feito via `TRUNCATE`.
 
-Trigger `tg_foco_calor_imutavel`: bloqueia `UPDATE` e `DELETE`. `TRUNCATE` segue liberado para recarga em desenvolvimento.
+## 4. Estratégia de Indexação
 
-## Satélite
+A aceleração de consultas combina índices espaciais GiST com índices relacionais B-tree:
 
-- Todo foco guarda `id_satelite`. Nenhum satélite é descartado na carga.
-- Reincidência da pergunta usa **todos** os satélites, contando **anos-calendário distintos** de `data_hora_evento`.
-- Séries comparáveis ano a ano filtram `satelite.is_referencia = TRUE` (AQUA_M-T no INPE).
-- Índice único parcial: no máximo uma linha com `is_referencia = TRUE`.
+1. **Índices GiST (R-Tree):** aplicados em todas as colunas `geom` das tabelas `foco_calor`, `imovel_car`, `reserva_legal`, `area_preservacao_permanente` e `unidade_conservacao`. Reduzem a complexidade do teste de sobreposição de $O(N \times M)$ para varredura de caixas mínimas envolventes indexadas.
+2. **Índices B-tree:**
+   - `foco_calor(data_hora_evento)` para filtragem do intervalo de 2015 a 2025.
+   - `foco_calor(id_satelite)` para filtros pelo satélite de referência.
+   - `reserva_legal(cod_imovel)` para junções diretas com o imóvel rural.
+   - Índice parcial único em `satelite(is_referencia)` onde `is_referencia = TRUE`.
 
-## Como a pergunta cai no esquema
+## 5. Mapeamento da Consulta da Pergunta de Gestão
 
-> Quais imóveis rurais do Distrito Federal tiveram focos de calor reincidentes em áreas de reserva legal, de preservação permanente ou a até 1 km de unidades de conservação entre 2015 e 2025?
+A consulta central é avaliada em quatro etapas espaciais e temporais:
 
-1. Foco no período: `data_hora_evento` entre 2015-01-01 e 2025-12-31.
-2. Foco no imóvel: `ST_Intersects(foco.geom, imovel.geom)`.
-3. Critério espacial (OR):
-   - `ST_Intersects(foco.geom, reserva_legal.geom)` do mesmo `cod_imovel`, ou
-   - `ST_Intersects(foco.geom, app.geom)` (APP do imóvel ou camada distrital que intersecta o imóvel), ou
-   - `ST_DWithin(foco.geom, uc.geom, 1000)`.
-4. Reincidência: `COUNT(DISTINCT date_part('year', data_hora_evento)) >= 2` por `cod_imovel`.
+1. **Recorte temporal:** `f.data_hora_evento BETWEEN '2015-01-01' AND '2025-12-31'`.
+2. **Interseção com o imóvel rural:** `ST_Intersects(f.geom, i.geom)`.
+3. **Critérios de proximidade ou sobreposição ambiental (cláusula OR):**
+   - Foco intersecta reserva legal do mesmo imóvel: `ST_Intersects(f.geom, r.geom) AND r.cod_imovel = i.cod_imovel`.
+   - Foco intersecta área de preservação permanente: `ST_Intersects(f.geom, a.geom)`.
+   - Foco está no raio de 1 km de uma unidade de conservação: `ST_DWithin(f.geom, u.geom, 1000)`.
+4. **Agrupamento e reincidência:** `COUNT(DISTINCT date_part('year', f.data_hora_evento)) >= 2` agrupado por `i.cod_imovel`.
 
-## Índices (V4)
+## 6. Ordem de Carga e Dependências
 
-GiST em toda `geom`. B-tree em `foco_calor(data_hora_evento)`, `foco_calor(id_satelite)`, `reserva_legal(cod_imovel)` e `area_preservacao_permanente(cod_imovel)` (parcial).
+Para preservar a integridade referencial das chaves estrangeiras, a carga de dados obedece à seguinte ordem determinística:
 
-## Ordem de carga sugerida
-
-1. `satelite` (seed com AQUA_M-T marcado como referência)
-2. `imovel_car`
-3. `reserva_legal`, `area_preservacao_permanente`
-4. `unidade_conservacao` (e `hidrografia`, se entrar)
-5. `foco_calor`
-
-## Histórico
-
-Ver [declaracao_historico.md](declaracao_historico.md). Na E1, CAR e camadas territoriais são snapshot com `data_download`. Focos são insert-only.
-
-## Stack
-
-PostgreSQL + PostGIS (Docker Compose local ou Supabase). O DDL usa tipos e funções padrão PostGIS; não depende de extensões exclusivas do Supabase.
+1. `satelite` (inserção inicial com definição do satélite de referência `AQUA_M-T`).
+2. `imovel_car` (base territorial dos imóveis do DF).
+3. `reserva_legal` e `area_preservacao_permanente` (dependem dos códigos de imóveis cadastrados).
+4. `unidade_conservacao` e `hidrografia` (camadas independentes de referência distrital).
+5. `foco_calor` (camada de eventos que referencia a tabela de satélites).

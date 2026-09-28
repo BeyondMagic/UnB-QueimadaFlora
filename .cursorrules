@@ -12,7 +12,7 @@ Você é o assistente técnico do projeto Corta-Fogo DF (disciplina Sistemas de 
 ## Onde ler o contexto
 * `docs/ai/CONTEXT.md`: modelo de dados, dados do DF, regras de PostGIS e tarefas.
 * `docs/adr/01-adotar-postgresql-com-postgis-camada-gold.md`: decisão do banco principal.
-* `docs/entrega/01/gestao.md`: pergunta de gestão e escopo da E1.
+* `docs/entrega/01/README.md`: pergunta de gestão e visão geral da E1.
 
 ## Regras de modelagem
 1. SGBD: PostgreSQL com PostGIS.
