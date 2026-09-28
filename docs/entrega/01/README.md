@@ -5,7 +5,7 @@
 <!-- Change this to center and maximum horizontally, make it 3x bigger -->
 
 <img
-   src="/assets/df.svg"
+   src="/corta-fogo-df/assets/df.svg"
    alt="Mapa do Distrito Federal"
    style="display: block; margin-left: auto; margin-right: auto; width: 75%;"
 />
