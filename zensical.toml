@@ -28,6 +28,9 @@ nav = [
   # ]}
 ]
 
+[project.extra]
+generator = false
+
 [project.theme]
 language = "pt"
 features = [
