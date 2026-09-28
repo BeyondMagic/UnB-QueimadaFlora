@@ -67,7 +67,7 @@ Síntese das seis seções da decisão de arquitetura para a escolha do banco de
 
 - **Contexto:** cruzamento de 39 mil focos contra 21 mil imóveis do CAR e reservas com até 54 mil. Exige projeção métrica (SIRGAS 2000 / UTM zone 23S, EPSG:31983) e validação topológica (`ST_IsValid`).
 - **Alternativas:** avaliação de três caminhos técnicos: PostgreSQL puro (sem índice R-tree para ponto em polígono), MongoDB (limitado a coordenadas esféricas WGS84 e sem operador eficiente de junção espacial) e PostgreSQL com PostGIS.
-- **Medição:** benchmark em contêiner (2 CPUs, 2 GB RAM): PostgreSQL puro estourou o tempo (> 180 s), MongoDB levou > 120 s em agregação, e PostgreSQL com PostGIS respondeu em 32,4 s via índice GiST.
+- **Medição:** benchmark mínimo e reproduzível ([`scripts/benchmark/`](https://github.com/BeyondMagic/corta-fogo-df/tree/main/scripts/benchmark)) com o dado real do DF: a mesma consulta sem índice espacial estoura 5 minutos (timeout, não termina), com índice GiST responde em 41,8 s. MongoDB não foi implementado nem medido; justificativa técnica no ADR.
 - **Decisão:** adoção do PostgreSQL 16 com PostGIS 3.4, SRID 31983 fixo, restrição `CHECK (ST_IsValid(geom) AND NOT ST_IsEmpty(geom))` e índices GiST em todas as geometrias.
 - **Consequências:** ganho de operadores espaciais nativos (`ST_Intersects`, `ST_DWithin` em metros) e integridade referencial com a tabela `satelite`; custo de dependência de binários compilados e reprojeção de dados na ingestão.
 - **Gatilho de revisão:** migração do processamento analítico para DuckDB com GeoParquet caso as consultas permaneçam acima de 5 s após simplificação topológica (`ST_SimplifyPreserveTopology`).

@@ -53,12 +53,9 @@ Armazenar ocorrências e cadastros territoriais como coleções de documentos JS
 
 ## Medição
 
-Testes executados com o volume real do Distrito Federal em ambiente conteinerizado (Docker Compose, PostgreSQL 16, PostGIS 3.4, alocação de 2 CPUs e 2 GB de RAM em armazenamento SSD).
+Benchmark mínimo com o dado real do Distrito Federal (38.945 focos, 21.047 imóveis, 13.499 reservas legais, 2.234 APPs, 84 UCs), já carregado pelo `docker compose up`. Nenhum dado sintético.
 
-Comandos de reprodução no repositório:
-
-1. Carga completa das 5 tabelas: `docker compose up`
-2. Teste de junção espacial sem simplificação:
+Script, comando de reprodução e detalhe da medição: [`scripts/benchmark/`](../../scripts/benchmark/README.md).
 
 ```sql
 EXPLAIN (ANALYZE, BUFFERS)
@@ -74,14 +71,15 @@ GROUP BY i.cod_imovel
 HAVING count(DISTINCT date_part('year', f.data_hora_evento)) >= 2;
 ```
 
-Resultados comparativos:
+A mesma consulta roda duas vezes na mesma sessão: uma com o comportamento padrão do PostgreSQL (usa o índice GiST das geometrias), outra com `enable_indexscan`/`enable_bitmapscan` desligados, forçando varredura sequencial. Essa segunda execução isola o efeito do índice espacial sobre o mesmo dado, sem depender de uma segunda infraestrutura: aproxima a alternativa A ("PostgreSQL puro sem índice R-tree"), já que a ausência desse índice é exatamente o que a distingue da alternativa escolhida.
 
-| Critério de medição | A. PostgreSQL puro | B. PostgreSQL + PostGIS | C. MongoDB |
-| :--- | :---: | :---: | :---: |
-| **Tempo de carga inicial** | ~15 s | 48 s | ~40 s |
-| **Tempo da consulta central** | > 180 s (timeout) | 32,4 s (38.945 focos x 21.047 imóveis) | > 120 s (agregação em lote) |
-| **Uso de índice espacial** | Inexistente (varredura sequencial) | GiST utilizado (Index Scan nas geometrias) | 2dsphere (apenas em consultas pontuais) |
-| **Validação de topologia** | Externa (código Python) | Nativa no SGBD (`ST_IsValid` em DDL) | Externa (valida apenas formato JSON) |
+| Alternativa | Tempo da consulta central |
+| :--- | :---: |
+| A. Sem índice espacial (varredura sequencial forçada) | > 5 min (timeout aplicado no script, não terminou) |
+| B. PostgreSQL + PostGIS, com índice GiST (escolhida) | 41,8 s (38.945 focos × 21.047 imóveis) |
+| C. MongoDB | não medido |
+
+A alternativa C não foi implementada nem medida: exigiria uma segunda pipeline completa de ingestão duplicando o mesmo dado real em coleções GeoJSON com índice `2dsphere`, fora do escopo de um benchmark mínimo. A justificativa técnica para descartá-la sem essa medição está na seção "Alternativas consideradas": o índice `2dsphere` só opera na esfera WGS84 (EPSG:4326), o que impede o cálculo métrico nativo em UTM 23S que a pergunta de gestão exige (`ST_DWithin` de 1.000 m), e o MongoDB não tem um operador de junção espacial entre coleções poligonais equivalente ao `ST_Intersects` acelerado por GiST.
 
 ## Decisão
 
@@ -107,7 +105,7 @@ Padrões obrigatórios:
 
 - A imagem Docker e instâncias gerenciadas exigem a extensão PostGIS instalada.
 - Reprojeção obrigatória de fontes em EPSG:4674 ou [EPSG:4326](../glossario.md#epsg4326-wgs-84-coordenadas-geograficas) durante o pipeline de carga.
-- A consulta da pergunta de gestão sem simplificação de vértices leva 32,4 segundos devido à sobreposição de imóveis do CAR e polígonos densos de reserva legal, ultrapassando a meta de 500 ms sem a aplicação de pré-simplificação topológica (`ST_SimplifyPreserveTopology`).
+- A consulta da pergunta de gestão sem simplificação de vértices leva 41,8 segundos (medição real, seção "Medição") devido à sobreposição de imóveis do CAR e polígonos densos de reserva legal, ultrapassando a meta de 500 ms sem a aplicação de pré-simplificação topológica (`ST_SimplifyPreserveTopology`).
 
 **O que se torna irreversível:**
 
