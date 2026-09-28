@@ -1,6 +1,6 @@
-# UnB-QueimadaFlora (Foco no Incêndio DF)
+# Corta-Fogo DF
 
-Projeto de Engenharia de Dados para análise de focos de calor, áreas protegidas e imóveis rurais no Distrito Federal.
+Plataforma de engenharia de dados para cruzamento espacial e temporal de focos de calor, áreas públicas protegidas e imóveis rurais no Distrito Federal.
 
 Disciplina Sistemas de Bancos de Dados 2 (FCTE / UnB, semestre 2026.2, Grupo G5).
 
@@ -92,13 +92,15 @@ A junção espacial completa (focos dentro de imóvel, com interseção em reser
 
 | Integrante | Frente | Entrega |
 | :--- | :--- | :--- |
-| Gabriel Souza | Coordenação | Pergunta de gestão, escopo, contagem de focos e tag e1 |
-| Manoel Fernando | Modelagem espacial | Esquema PostGIS com colunas geométricas tipadas e restrições |
+| Gabriel Souza | Coordenação e Pergunta de Gestão | Pergunta de gestão, escopo, contagem de focos e tag e1 |
+| Manoel Felipe | Modelagem de Dados | Esquema PostGIS com colunas geométricas tipadas e restrições |
 | Samuel Rodrigues | Migrações | Scripts versionados de criação do banco, extensão e índices GiST |
-| João Victor | Focos de calor | Download automatizado e carga dos focos do INPE (DF, 2015 a 2025) |
-| Gabriel Fernando | Camadas geográficas | Carga e reprojeção de shapefiles/geopackages do IBRAM e CAR-DF |
-| Cláudio Henrique | Docker e execução | Compose do PostGIS, script de carga em um comando e teste em máquina limpa |
-| Elias F. | Métricas e ADR | Números reais pós-carga e documentação no ADR |
+| João V. Farias | ADR e ingestão de dados de focos | Download automatizado e carga dos focos do INPE (DF, 2015 a 2025) |
+| Gabriel Fernando | Ingestão de camadas territoriais | Carga e reprojeção de shapefiles/geopackages do IBRAM e CAR-DF |
+| Cláudio Henrique | Infraestrutura | Compose do PostGIS, script de carga em um comando e teste em máquina limpa |
+| Elias F. | Caracterização e Métricas | Números reais pós-carga e documentação no ADR |
+
+Detalhes de matrícula e GitHub de cada integrante: [docs/index.md](docs/index.md).
 
 ## Onde encontrar mais detalhes
 

@@ -172,7 +172,7 @@ Os registros de calor não sofrem alterações após a detecção orbital:
    - `data_hora_ingestao`: carimbo registrado pelo pipeline na inserção no PostgreSQL, para auditoria e controle de recargas.
 3. **Múltiplos sensores orbitais:** um mesmo incêndio pode gerar detecções por satélites distintos ou em passagens contíguas. A ingestão preserva todas as ocorrências individuais sem deduplicação artificial. A contagem agrupa anos distintos de `data_hora_evento` por imóvel. Análises históricas comparáveis filtram o satélite de referência (`AQUA_M-T` via flag `is_referencia`).
 
-## 7. Cadastros Territoriais e Snapshots
+## 8. Cadastros Territoriais e Snapshots
 
 <p class="apresentador"><em>Apresentação: Gabriel Fernando (Ingestão de Camadas)</em></p>
 
@@ -204,9 +204,9 @@ O pipeline de camadas baixa e descompacta os arquivos do SICAR e do SISDIA, conv
 
 A Entrega 1 não implementa tabelas de dimensão de variação lenta (SCD Tipo 2) para preservar a estabilidade da carga transacional. Caso análises de entregas futuras demandem saber se a área estava formalmente averbada na data exata da detecção, a modelagem prevê a adição de colunas temporais de vigência (`vigencia_inicio` e `vigencia_fim`) com cruzamento por intervalo semiaberto. -->
 
-## 8. Ordem de Carga e Dependências
+## 9. Ordem de Carga e Dependências
 
-<p class="apresentador"><em>Apresentação: Cláudio Henrique (Infraestrutura)</em></p>
+<p class="apresentador"><em>Apresentação: Samuel Rodrigues (Migrações)</em></p>
 
 Para preservar a integridade referencial das chaves estrangeiras, a carga de dados obedece à ordem determinística:
 
@@ -228,9 +228,9 @@ Sequência de ingestão:
 4. `unidade_conservacao` e `hidrografia`: camadas de referência distrital sem dependência cadastral.
 5. `foco_calor`: tabela de eventos que referencia a tabela `satelite`.
 
-## 9. Como Reproduzir a Carga
+## 10. Como Reproduzir a Carga
 
-<p class="apresentador"><em>Apresentação: Samuel Rodrigues (Migrações)</em></p>
+<p class="apresentador"><em>Apresentação: Cláudio Henrique (Infraestrutura)</em></p>
 
 A inicialização e a carga completa do banco ocorrem com um único comando na raiz do repositório:
 
@@ -245,7 +245,7 @@ Fluxo automatizado da execução:
 3. Os serviços de ingestão disparam em paralelo a carga de focos do INPE e das camadas territoriais.
 4. As rotinas garantem idempotência e saneamento topológico de polígonos inválidos.
 
-## 10. Artefatos e Entregáveis
+## 11. Artefatos e Entregáveis
 
 <p class="apresentador"><em>Apresentação: Gabriel Souza (Coordenação e Pergunta de Gestão)</em></p>
 
@@ -257,7 +257,7 @@ Documentos complementares e código-fonte versionados no repositório:
 - **[Pipelines de Ingestão](https://github.com/BeyondMagic/corta-fogo-df/tree/main/src/pipeline):** extração do INPE e saneamento topológico com GeoPandas e GDAL.
 
 
-## 11. Referências
+## 12. Referências
 
 Fontes de dados, especificações e normas técnicas utilizadas na elaboração da Entrega 1:
 
