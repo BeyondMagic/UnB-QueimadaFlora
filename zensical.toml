@@ -12,7 +12,7 @@ edit_uri = "edit/main/docs/"
 extra_css = ["stylesheets/extra.css"]
 
 nav = [
-  { "Início" = "index.md" },
+  { "Visão Geral" = "index.md" },
   { "Modelagem do Sistema de Origem" = [
       { "Pergunta de Gestão " = "entrega/01/gestao.md" },
       { "Modelagem: PostGIS" = "modelagem/esquema_espacial.md" },
