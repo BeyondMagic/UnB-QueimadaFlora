@@ -17,7 +17,7 @@
 
 *Apresentação: Gabriel Souza (Coordenação e Pergunta de Gestão)*
 
-A Entrega 1 estabelece o sistema de origem transacional da plataforma, com esquema relacional versionado no PostgreSQL com PostGIS e carga automatizada a partir de dados abertos brasileiros. A modelagem responde à seguinte pergunta central de fiscalização ambiental:
+A modelagem responde à seguinte pergunta central de fiscalização ambiental:
 
 > **Quais imóveis rurais do Distrito Federal tiveram focos de calor reincidentes em áreas de reserva legal, de preservação permanente ou a até 1 km de unidades de conservação entre 2015 e 2025?**
 
@@ -35,7 +35,7 @@ Cada termo da pergunta de gestão mapeia diretamente para regras relacionais e o
 | :--- | :--- | :--- |
 | **Imóveis rurais do DF** | Polígonos de imóveis cadastrados no Cadastro Ambiental Rural (SICAR) para o DF. | Tabela `imovel_car` com chave primária `cod_imovel` (padrão `DF-%`) e carimbo `data_download`. |
 | **Focos reincidentes** | Registros de calor do INPE dentro do DF em pelo menos 2 anos distintos. | Tabela `foco_calor`, contando anos distintos de `data_hora_evento` por imóvel (não o total de detecções). |
-| **Reserva legal e APP** | O foco intersecta área protegida declarada do imóvel ou mapeada no território. | Junção espacial (`ST_Intersects`) com `reserva_legal` e `area_preservacao_permanente` acelerada por GiST. |
+| **Reserva legal e Área de Prservação Permanente** | O foco intersecta área protegida declarada do imóvel ou mapeada no território. | Junção espacial (`ST_Intersects`) com `reserva_legal` e `area_preservacao_permanente` acelerada por GiST. |
 | **Até 1 km de UCs** | O foco no imóvel está a no máximo 1.000 metros do limite de uma unidade de conservação. | Cálculo de distância métrica nativa (`ST_DWithin`) com `unidade_conservacao` no SRID 31983. |
 | **Período de análise** | Anos completos entre 01/01/2015 e 31/12/2025. | Filtro temporal por intervalo em `data_hora_evento`. |
 | **Sensores orbitais** | Todos os satélites entram no cálculo de reincidência. Séries comparáveis filtram o satélite de referência. | Coluna `id_satelite` com flag `is_referencia` (`AQUA_M-T`). |
@@ -55,6 +55,7 @@ A carga foi dimensionada sobre a totalidade dos dados abertos do Distrito Federa
 | `unidade_conservacao` | 84 | IBRAM / SISDIA | 2 MB |
 
 Detalhamento dos focos de calor no Distrito Federal:
+
 - Total com todos os satélites: 38.945 registros de 20 sensores distintos (mínimo de 948 focos em 2018 e máximo de 6.190 em 2024).
 - Total com o satélite de referência (`AQUA_M-T`): 2.350 registros no mesmo período (fator de redução de 16,5 vezes).
 
