@@ -30,15 +30,15 @@ Cada termo da pergunta vira uma regra que a consulta consegue testar. Estas defi
 
 ## 3. Recorte de escopo da E1
 
-**Decisão:** a E1 entrega o núcleo focos + UCs/APPs + CAR-DF num único banco PostGIS, subindo com um comando. Flora, vazão e as camadas de bucket e analítica da planilha ficam para entregas seguintes.
+**Decisão:** a E1 entrega o núcleo de focos, áreas de preservação permanente, unidades de conservação e imóveis rurais em um único banco PostGIS, subindo com um comando. Flora, vazão e as camadas de bucket e analítica da planilha ficam para entregas seguintes.
 
-| Item                                                                |    Na E1?    | Motivo                                                                                                                        | Condição para entrar depois                                                |
-| :------------------------------------------------------------------ | :----------: | :---------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------- |
-| **Focos de calor** (BDQueimadas, DF, 2015-2025, todos os satélites) |   **Sim**    | Tabela central da pergunta e a de maior volume.                                                                               | —                                                                          |
-| **Unidades de Conservação** (IBRAM / Geoportal DF)                  |   **Sim**    | Base da faixa de 1 km.                                                                                                        | —                                                                          |
-| **APPs**                                                            |   **Sim**    | Parte do critério da pergunta.                                                                                                | —                                                                          |
-| **Imóveis e reserva legal do CAR-DF** (SICAR)                       |   **Sim**    | Sujeito da pergunta. Se o download não automatizar, versiona-se o recorte do DF no repositório, se couber em 5 MB compactado. | —                                                                          |
-| **Hidrografia**                                                     | **Opcional** | Não entra na pergunta. Carrega se não atrasar o núcleo; não conta para fechar a E1.                                           | Pergunta que use rios.                                                     |
+| Item | Na E1? | Motivo | Condição para entrar depois |
+| :--- | :---: | :--- | :--- |
+| **Focos de calor** (BDQueimadas, DF, 2015-2025, todos os satélites) | **Sim** | Tabela central da pergunta e a de maior volume. | - |
+| **Unidades de Conservação** (IBRAM / Geoportal DF) | **Sim** | Base da faixa de 1 km. | - |
+| **Áreas de Preservação Permanente** | **Sim** | Parte do critério da pergunta. | - |
+| **Imóveis e reserva legal** (SICAR) | **Sim** | Sujeito da pergunta. Se o download não automatizar, versiona-se o recorte do DF no repositório, se couber em 5 MB compactado. | - |
+| **Hidrografia** | **Opcional** | Não entra na pergunta. Carrega se não atrasar o núcleo; não conta para fechar a E1. | Pergunta que use rios. |
 | **Flora ameaçada** (SiBBr / JBRJ)                                   |   **Não**    | O catálogo traz nomes de espécies, sem pontos de ocorrência com coordenadas.                                                  | Fonte de ocorrências georreferenciadas no DF.                              |
 | **Pergunta da vazão**                                               |   **Não**    | Exige séries hidrológicas, que não estão entre as fontes listadas.                                                            | Fonte de vazão incluída na aba 1 Fontes.                                   |
 | **Camada Bronze em bucket** (MinIO/S3)                              |   **Não**    | Aumenta o Compose e não ajuda a responder a pergunta.                                                                         | Entrega que trate reprocessamento e auditoria.                             |
