@@ -50,6 +50,7 @@ A documentação técnica detalhada da Entrega 1 está dividida nos seguintes do
 - **[Decisão de Arquitetura (ADR 0001)](../../adr/01-adotar-postgresql-com-postgis-camada-gold.md):** justificativa da adoção do PostgreSQL com PostGIS, análise de alternativas (incluindo a opção nula) e benchmarks com dados do DF.
 - **[Scripts de Migração](https://github.com/BeyondMagic/corta-fogo-df/tree/main/migrations):** scripts SQL versionados (`V1` a `V5`) gerenciados pelo Flyway.
 - **[Pipelines de Ingestão](https://github.com/BeyondMagic/corta-fogo-df/tree/main/src/pipeline):** scripts automatizados para extração do INPE e ingestão com saneamento de geometrias via GeoPandas e GDAL.
+- **[Glossário Técnico](../../glossario.md):** definições formais e referências bibliográficas de conceitos espaciais, temporais e de engenharia de dados.
 
 ## Como Reproduzir a Carga
 

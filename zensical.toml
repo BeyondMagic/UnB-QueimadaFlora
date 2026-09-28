@@ -22,6 +22,7 @@ nav = [
       { "Visão Geral" = "adr/README.md" },
       { "1ª: Banco de Dados" = "adr/01-adotar-postgresql-com-postgis-camada-gold.md" }
   ]},
+  { "Glossário" = "glossario.md" }
   # { "Diretrizes Técnicas" = [
   #     { "Contexto do Projeto" = "ai/CONTEXT.md" },
   #     { "Guia para Assistentes" = "ai/README.md" }
