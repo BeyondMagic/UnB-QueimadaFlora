@@ -115,8 +115,6 @@ A equipe utilizou assistentes de IA para auxiliar na escrita de código, e revis
 
 ## Seções
 
-- **[Visão Geral da Entrega 1](entrega/01/README.md):** pergunta de gestão, definições operacionais e escopo da E1.
-- **[Modelagem Espacial](modelagem/esquema_espacial.md):** DDL do PostGIS, tipos geométricos, chaves, restrições e regras de bitemporalidade.
-- **[Declaração de Histórico](modelagem/declaracao_historico.md):** política de persistência temporal para focos (insert-only) e limites do CAR (snapshot).
+- **[Entrega 1: Fonte Transacional e Sistema de Origem](entrega/01/README.md):** escopo, pergunta de gestão, modelagem espacial e declaração de histórico.
 - **[Decisões de Arquitetura (ADR)](adr/README.md):** registro formal das escolhas de banco, formatos e camadas.
 - **[Diretrizes Técnicas](ai/CONTEXT.md):** contexto consolidado e regras para desenvolvedores e assistentes de IA. -->

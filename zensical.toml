@@ -10,14 +10,14 @@ repo_url = "https://github.com/BeyondMagic/corta-fogo-df"
 repo_name = "BeyondMagic/corta-fogo-df"
 edit_uri = "edit/main/docs/"
 extra_css = ["stylesheets/extra.css"]
+extra_javascript = [
+  "https://unpkg.com/mermaid@11/dist/mermaid.min.js",
+  "javascripts/extra.js"
+]
 
 nav = [
   { "Visão Geral" = "index.md" },
-  { "Entrega 1" = [
-      { "Visão Geral" = "entrega/01/README.md" },
-      { "Modelagem: PostGIS" = "modelagem/esquema_espacial.md" },
-      { "Modelagem: Histórico" = "modelagem/declaracao_historico.md" },
-  ]},
+  { "Entrega 1" = "entrega/01/README.md" },
   { "Decisões de Arquitetura" = [
       { "Visão Geral" = "adr/README.md" },
       { "1ª: Banco de Dados" = "adr/01-adotar-postgresql-com-postgis-camada-gold.md" }
