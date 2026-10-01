@@ -117,7 +117,7 @@ Padrões obrigatórios:
 2. Restrição `CHECK (ST_IsValid(geom) AND NOT ST_IsEmpty(geom))` em todas as tabelas espaciais.
 3. [Índice GiST](../glossario.md#indice-gist-generalized-search-tree-r-tree) em todas as colunas `geom`.
 4. [Modelo temporal bitemporal](../glossario.md#modelo-temporal-bitemporal) nos focos de calor: `data_hora_evento` (detecção do satélite para reincidência) e `data_hora_ingestao` (auditoria do pipeline). Focos são imutáveis via trigger.
-5. [Snapshot de limites territoriais](../glossario.md#snapshot-de-limites-territoriais): `data_download` registrado para controle de versão do CAR e UCs.
+5. [Snapshot de limites territoriais](../glossario.md#snapshot-de-limites-territoriais): `data_download` (quando a fonte foi obtida) e `data_hora_ingestao` (quando a linha entrou neste banco, desde a migração `V6`) registrados separadamente para CAR e UCs.
 
 ## Consequências
 

@@ -10,6 +10,7 @@ import json
 import os
 import sys
 import urllib.request
+from datetime import datetime, timezone
 
 RAW_DIR = os.path.join("data", "raw")
 
@@ -51,6 +52,8 @@ def baixar_camada_geojson(nome: str, info: dict, output_dir: str = RAW_DIR) -> s
     )
 
     try:
+        baixado_em = datetime.now(timezone.utc).isoformat()
+
         with urllib.request.urlopen(req, timeout=60) as resp:
             conteudo = resp.read()
 
@@ -59,6 +62,12 @@ def baixar_camada_geojson(nome: str, info: dict, output_dir: str = RAW_DIR) -> s
 
         with open(destino, "w", encoding="utf-8") as f:
             json.dump(dados, f, ensure_ascii=False)
+
+        # Registra quando o download de fato aconteceu, separado do momento em
+        # que a carga roda (load_camadas.py pode rodar bem depois disso).
+        meta_path = destino + ".meta.json"
+        with open(meta_path, "w", encoding="utf-8") as f:
+            json.dump({"baixado_em": baixado_em, "fonte": info["url"]}, f)
 
         tamanho_kb = len(conteudo) / 1024
         print(f"  OK: {destino} ({len(features)} feicoes, {tamanho_kb:.1f} KB)")

@@ -34,6 +34,12 @@ Sistema geodésico global de referência (World Geodetic System 1984) expresso e
 
 ## 2. Estruturas Espaciais e Banco de Dados
 
+### Arquitetura em Camadas: Bronze e Gold
+
+Padrão de arquitetura de dados (medallion architecture) que organiza a ingestão em estágios sucessivos de qualidade: Bronze guarda o dado bruto exatamente como a fonte entregou, sem transformação; Gold guarda o dado já validado, tipado e pronto para consulta[^21].
+
+- **Uso no projeto:** a camada Bronze é o arquivo bruto em `data/raw` e `data/processed` (CSV do INPE, GeoJSON do IBRAM/SISDIA, shapefile zipado do SICAR), fora do banco. A camada Gold é o schema `public` do PostgreSQL: as tabelas finais com SRID fixo, chaves, restrições `ST_IsValid` e índices GiST, onde a consulta da pergunta de gestão roda direto. Só os focos passam por um estágio intermediário dentro do banco (`staging.foco_calor_raw`), porque chegam como coordenadas soltas em vez de geometria pronta. Diagrama completo na seção "Pipeline: da fonte pública à camada Gold" da [Entrega 1](../entrega/01/README.md#pipeline-da-fonte-publica-a-camada-gold).
+
 ### PostGIS
 
 Extensão espacial de código aberto para o SGBD PostgreSQL que adiciona suporte a tipos de dados geográficos (Point, LineString, Polygon, MultiPolygon) em conformidade com as especificações da Open Geospatial Consortium (OGC)[^5].
@@ -66,13 +72,13 @@ Biblioteca em C++ que implementa os algoritmos de geometria computacional e pred
 
 Abordagem de modelagem que registra duas dimensões ortogonais de tempo para cada fato: o tempo válido (quando o evento ocorreu no mundo real) e o tempo de transação (quando o registro foi gravado no sistema de banco de dados)[^10].
 
-- **Uso no projeto:** implementado na tabela `foco_calor` pelas colunas `data_hora_evento` (tempo válido da passagem orbital do satélite) e `data_hora_ingestao` (tempo de transação no banco). Permite calcular a reincidência com base estrita no ano do evento, mantendo a trilha de auditoria da carga.
+- **Uso no projeto:** implementado em `foco_calor` pelas colunas `data_hora_evento` (tempo válido da passagem orbital do satélite) e `data_hora_ingestao` (tempo de transação no banco). Desde a migração `V6`, as quatro tabelas territoriais (`imovel_car`, `reserva_legal`, `area_preservacao_permanente`, `unidade_conservacao`) também têm `data_hora_ingestao`, ao lado de `data_download` (ver "Snapshot de Limites Territoriais"). `data_download` e `data_hora_ingestao` não são o mesmo tempo: o arquivo pode ter sido baixado numa data e carregado neste banco bem depois, por exemplo ao reexecutar `docker compose up` em outra máquina.
 
 ### Snapshot de Limites Territoriais
 
 Estratégia de captura periódica de dados cadastrais em que uma versão consolidada e estática da fonte de origem é armazenada com registro de seu momento de extração[^11].
 
-- **Uso no projeto:** aplicado às tabelas `imovel_car`, `reserva_legal`, `area_preservacao_permanente` e `unidade_conservacao` por meio da coluna `data_download`. Delimita formalmente que a consulta espacial avalia o impacto dos focos contra o perímetro registrado no momento do snapshot, sem presumir vigências retroativas.
+- **Uso no projeto:** aplicado às tabelas `imovel_car`, `reserva_legal`, `area_preservacao_permanente` e `unidade_conservacao` por meio da coluna `data_download`, que registra quando o arquivo foi obtido na fonte (IBRAM/SISDIA ou SICAR), não quando a carga rodou. Para as camadas baixadas em tempo de execução (UCs e APPs do IBRAM), `extract_camadas.py` grava essa data num arquivo `.meta.json` ao lado do GeoJSON; para os zips do SICAR, versionados no repositório, é uma constante documentada em `load_camadas.py`. Delimita formalmente que a consulta espacial avalia o impacto dos focos contra o perímetro registrado no momento do snapshot, sem presumir vigências retroativas.
 
 ### SCD Tipo 2 (Slowly Changing Dimensions Type 2)
 
@@ -160,3 +166,4 @@ Banco de Dados de Queimadas mantido pelo Instituto Nacional de Pesquisas Espacia
 [^18]: Instituto Brasília Ambiental (IBRAM). _Geoportal do Distrito Federal / Sistema Distrital de Informações Ambientais (SISDIA)_. Brasília: IBRAM, 2024. Disponível em: <https://sisdia.df.gov.br/>.
 [^19]: Brasil. _Lei nº 9.985, de 18 de julho de 2000. Institui o Sistema Nacional de Unidades de Conservação da Natureza (SNUC)_. Diário Oficial da União, Brasília, DF, 19 jul. 2000.
 [^20]: Instituto Nacional de Pesquisas Espaciais (INPE). _Programa Queimadas: Monitoramento dos Focos Ativos por Satélite_. São José dos Campos: INPE, 2024. Disponível em: <https://queimadas.dgi.inpe.br/queimadas/bdqueimadas>.
+[^21]: Databricks. _What is a Medallion Architecture?_. Databricks Glossary, 2024. Disponível em: <https://www.databricks.com/glossary/medallion-architecture>.

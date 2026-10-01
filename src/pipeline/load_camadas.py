@@ -11,6 +11,7 @@ aplica correcao topologica (make_valid) e insere nas tabelas da E1:
 
 import argparse
 import datetime
+import json
 import os
 import sys
 import geopandas as gpd
@@ -20,6 +21,29 @@ from shapely import make_valid
 from shapely.geometry import MultiPolygon, Polygon
 
 TARGET_SRID = 31983
+
+# AREA_IMOVEL.zip e RESERVA_LEGAL.zip sao arquivos estaticos versionados no
+# repositorio (nao sao baixados a cada carga). Esta e a data em que Gabriel
+# Fernando os obteve do SICAR, conforme o commit que os adicionou
+# (ca8e5c4, "feat: add geographic layers extraction and data loading
+# pipeline"). Nao confundir com a data em que o load_camadas.py roda.
+SICAR_DATA_DOWNLOAD = "2026-09-27"
+
+
+def ler_data_download(caminho_dado: str, fallback: str) -> str:
+    """
+    Le a data real de download de um arquivo baixado por extract_camadas.py,
+    gravada no sidecar <arquivo>.meta.json. Usa `fallback` (e avisa) se o
+    sidecar nao existir, por exemplo quando o GeoJSON foi colocado manualmente.
+    """
+    meta_path = caminho_dado + ".meta.json"
+    if os.path.exists(meta_path):
+        with open(meta_path, encoding="utf-8") as f:
+            meta = json.load(f)
+        return meta["baixado_em"][:10]
+
+    print(f"[AVISO] Sem metadado de download para {caminho_dado}, usando {fallback}.")
+    return fallback
 
 
 def get_db_connection(args):
@@ -67,13 +91,14 @@ def normalizar_para_multipolygon(geom):
     return None
 
 
-def carregar_unidades_conservacao(conn, raw_dir: str, data_download: str):
+def carregar_unidades_conservacao(conn, raw_dir: str):
     """Carrega as Unidades de Conservacao a partir do GeoJSON do IBRAM."""
     path = os.path.join(raw_dir, "unidades_conservacao.geojson")
     if not os.path.exists(path):
         print(f"[AVISO] Arquivo nao encontrado: {path}. Pulando UCs.")
         return 0
 
+    data_download = ler_data_download(path, datetime.date.today().isoformat())
     print("Processando Unidades de Conservacao...")
     gdf = gpd.read_file(path)
     if gdf.crs is None or gdf.crs.to_epsg() != TARGET_SRID:
@@ -125,7 +150,7 @@ def carregar_unidades_conservacao(conn, raw_dir: str, data_download: str):
     return len(registros)
 
 
-def carregar_apps_ibram(conn, raw_dir: str, data_download: str):
+def carregar_apps_ibram(conn, raw_dir: str):
     """Carrega as APPs fisicas mapeadas pelo IBRAM/SISDIA."""
     camadas_app = [
         ("app_nascentes.geojson", "nascente"),
@@ -134,16 +159,13 @@ def carregar_apps_ibram(conn, raw_dir: str, data_download: str):
     ]
 
     total_carregado = 0
-    sql = """
-        INSERT INTO area_preservacao_permanente (tipo, area_ha, data_download, geom)
-        VALUES (%s, %s, %s, %s, ST_SetSRID(ST_GeomFromWKB(decode(%s, 'hex')), 31983))
-    """
 
     for filename, tipo in camadas_app:
         path = os.path.join(raw_dir, filename)
         if not os.path.exists(path):
             continue
 
+        data_download = ler_data_download(path, datetime.date.today().isoformat())
         print(f"Processando APPs ({tipo})...")
         gdf = gpd.read_file(path)
         if gdf.crs is None or gdf.crs.to_epsg() != TARGET_SRID:
@@ -186,13 +208,14 @@ def carregar_apps_ibram(conn, raw_dir: str, data_download: str):
     return total_carregado
 
 
-def carregar_imoveis_car(conn, raw_dir: str, data_download: str) -> set:
+def carregar_imoveis_car(conn, raw_dir: str) -> set:
     """Carrega os imoveis rurais do CAR-DF a partir do zip do SICAR."""
     zip_path = os.path.join(raw_dir, "AREA_IMOVEL.zip")
     if not os.path.exists(zip_path):
         print(f"[AVISO] Arquivo {zip_path} nao encontrado. Pulando imoveis.")
         return set()
 
+    data_download = SICAR_DATA_DOWNLOAD
     print("Processando Imoveis Rurais do CAR-DF (pode levar cerca de 1 minuto)...")
     gdf = gpd.read_file(f"zip://{zip_path}")
     if gdf.crs is None or gdf.crs.to_epsg() != TARGET_SRID:
@@ -244,13 +267,14 @@ def carregar_imoveis_car(conn, raw_dir: str, data_download: str) -> set:
     return cods_inseridos
 
 
-def carregar_reserva_legal(conn, raw_dir: str, data_download: str, cods_validos: set):
+def carregar_reserva_legal(conn, raw_dir: str, cods_validos: set):
     """Carrega as Reservas Legais do CAR-DF respeitando a FK com imovel_car."""
     zip_path = os.path.join(raw_dir, "RESERVA_LEGAL.zip")
     if not os.path.exists(zip_path):
         print(f"[AVISO] Arquivo {zip_path} nao encontrado. Pulando reserva legal.")
         return 0
 
+    data_download = SICAR_DATA_DOWNLOAD
     print("Processando Reserva Legal do CAR-DF...")
     gdf = gpd.read_file(f"zip://{zip_path}")
     if gdf.crs is None or gdf.crs.to_epsg() != TARGET_SRID:
@@ -341,7 +365,6 @@ def main():
     )
 
     args = parser.parse_args()
-    data_download = datetime.date.today().isoformat()
 
     try:
         conn = get_db_connection(args)
@@ -359,10 +382,10 @@ def main():
                 """)
             conn.commit()
 
-        carregar_unidades_conservacao(conn, args.raw_dir, data_download)
-        carregar_apps_ibram(conn, args.raw_dir, data_download)
-        cods = carregar_imoveis_car(conn, args.raw_dir, data_download)
-        carregar_reserva_legal(conn, args.raw_dir, data_download, cods)
+        carregar_unidades_conservacao(conn, args.raw_dir)
+        carregar_apps_ibram(conn, args.raw_dir)
+        cods = carregar_imoveis_car(conn, args.raw_dir)
+        carregar_reserva_legal(conn, args.raw_dir, cods)
 
         with conn.cursor() as cur:
             cur.execute("ANALYZE unidade_conservacao, area_preservacao_permanente, imovel_car, reserva_legal;")

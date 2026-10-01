@@ -263,9 +263,63 @@ docker compose up
 Fluxo automatizado da execução:
 
 1. Inicia o contêiner PostgreSQL 16 com extensão PostGIS 3.4.
-2. O Flyway aplica as migrações SQL em ordem (`V1__...` a `V5__...`).
+2. O Flyway aplica as migrações SQL em ordem (`V1__...` a `V6__...`).
 3. Os serviços de ingestão disparam em paralelo a carga de focos do INPE e das camadas territoriais.
 4. As rotinas garantem idempotência e saneamento topológico de polígonos inválidos.
+
+### Pipeline: da fonte pública à camada Gold
+
+```mermaid
+flowchart LR
+    subgraph Fontes["Fontes públicas"]
+        INPE["INPE\nBDQueimadas"]
+        IBRAM["IBRAM / SISDIA"]
+        SICAR["SICAR"]
+    end
+
+    subgraph Bronze["Camada Bronze: arquivo bruto, como a fonte entregou (data/raw, data/processed)"]
+        CSV["focos_df_2015_2025.csv"]
+        GEOJSON["unidades_conservacao.geojson\n+ 3 GeoJSON de APP"]
+        ZIP["AREA_IMOVEL.zip\nRESERVA_LEGAL.zip"]
+    end
+
+    subgraph Staging["staging (schema do Postgres, so para focos)"]
+        RAW["staging.foco_calor_raw"]
+    end
+
+    subgraph Gold["Camada Gold: schema public, tipada, validada, indexada"]
+        FC["foco_calor"]
+        UC["unidade_conservacao"]
+        APP["area_preservacao_permanente"]
+        IC["imovel_car"]
+        RL["reserva_legal"]
+    end
+
+    INPE -->|extract_focos.py| CSV
+    IBRAM -->|extract_camadas.py| GEOJSON
+    SICAR -.->|zip versionado no repo, nao baixado a cada carga| ZIP
+
+    CSV -->|servico load: copy| RAW
+    RAW -->|SQL: ST_Transform, dedup de satelite| FC
+
+    GEOJSON -->|servico load_camadas: geopandas, make_valid, ST_Transform| UC
+    GEOJSON --> APP
+    ZIP -->|servico load_camadas| IC
+    ZIP --> RL
+```
+
+A **camada Bronze** é o arquivo bruto como a fonte entrega: CSV do INPE, GeoJSON do IBRAM/SISDIA, shapefile zipado do SICAR. Fica em `data/raw` e `data/processed`, fora do banco; só os focos passam por uma staging table (`staging.foco_calor_raw`) antes da transformação, porque é a única carga que precisa reprojetar coordenadas soltas (`latitude`/`longitude`) em vez de ler geometria já pronta de um shapefile ou GeoJSON.
+
+A **camada Gold** é o schema `public` do PostgreSQL: as sete tabelas finais (`foco_calor`, `satelite`, `imovel_car`, `reserva_legal`, `area_preservacao_permanente`, `unidade_conservacao`, `hidrografia`), com tipo de geometria fixo, SRID único, chaves, restrições (`ST_IsValid`) e índices GiST. É nela que a consulta da pergunta de gestão roda direto: a E1 não tem camada analítica intermediária (DuckDB/GeoParquet fica para entregas seguintes, ver [README.md](../../../README.md#o-que-ficou-para-entregas-seguintes)).
+
+Cada linha da camada Gold registra dois instantes distintos, nunca confundidos:
+
+| Tabela | Quando a fonte foi obtida | Quando a linha entrou neste banco |
+| :--- | :--- | :--- |
+| `foco_calor` | `data_hora_evento` (passagem do satélite) | `data_hora_ingestao` |
+| `imovel_car`, `reserva_legal`, `unidade_conservacao`, `area_preservacao_permanente` | `data_download` (download do arquivo na fonte) | `data_hora_ingestao` (desde a migração `V6`) |
+
+Até a migração `V5`, as quatro tabelas territoriais só tinham `data_download`, e a carga preenchia essa coluna com a data de execução do script, não com a data real em que o arquivo foi obtido na fonte. A migração `V6__ingestao_camadas_territoriais.sql` adiciona `data_hora_ingestao` (com `DEFAULT now()`, mesmo padrão de `foco_calor`) e os scripts de extração/carga passam a registrar `data_download` de verdade: `extract_camadas.py` grava um `.meta.json` ao lado de cada GeoJSON baixado do IBRAM/SISDIA com o instante exato do download, e `load_camadas.py` lê esse arquivo em vez de usar a data de hoje. Para os dois zips do SICAR, que são versionados no repositório e não baixados a cada carga, `data_download` é uma constante documentada no próprio script (`SICAR_DATA_DOWNLOAD`), com a data real em que o arquivo foi obtido.
 
 Conferência das contagens após a carga:
 
