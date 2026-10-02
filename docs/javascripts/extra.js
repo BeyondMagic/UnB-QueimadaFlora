@@ -1,6 +1,4 @@
-(function () {
-	'use strict';
-
+(() => {
 	let presentationActive = false;
 	let currentSlideIndex = 0;
 	let slideGroups = [];
